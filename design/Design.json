@@ -1,0 +1,183 @@
+{
+   "_typeName" : "CanvasLayout",
+   "_version" : "VER3",
+   "adjustment" : 0,
+   "box" : {
+      "_typeName" : "RelativeBox",
+      "height" : {
+         "_typeName" : "RelativeValue",
+         "type" : 0,
+         "value" : 0
+      },
+      "offset" : {
+         "_empty" : true
+      },
+      "width" : {
+         "_typeName" : "RelativeValue",
+         "type" : 0,
+         "value" : 0
+      }
+   },
+   "list" : [
+      {
+         "_typeName" : "CanvasLayout",
+         "adjustment" : 0,
+         "box" : {
+            "_typeName" : "RelativeBox",
+            "height" : {
+               "_typeName" : "RelativeValue",
+               "type" : 0,
+               "value" : 0
+            },
+            "offset" : {
+               "_empty" : true
+            },
+            "width" : {
+               "_typeName" : "RelativeValue",
+               "type" : 0,
+               "value" : 0
+            }
+         },
+         "list" : [
+            {
+               "_typeName" : "StaticFilledRect",
+               "box" : {
+                  "_typeName" : "RelativeBox",
+                  "height" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 0,
+                     "value" : 0
+                  },
+                  "offset" : {
+                     "_empty" : true
+                  },
+                  "width" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 0,
+                     "value" : 0
+                  }
+               },
+               "color" : [ 0, 0, 0, 1 ],
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               }
+            },
+            {
+               "_name" : "field",
+               "_typeName" : "GameView",
+               "box" : {
+                  "_typeName" : "RelativeBox",
+                  "height" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 0,
+                     "value" : 0
+                  },
+                  "offset" : {
+                     "_empty" : true
+                  },
+                  "width" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 0,
+                     "value" : 0
+                  }
+               },
+               "list" : [
+                  {
+                     "_name" : "squares",
+                     "_typeName" : "Layer",
+                     "index" : {
+                        "_typeName" : "FlatIndex",
+                        "keyType" : 2
+                     },
+                     "list" : [],
+                     "order" : {
+                        "_typeName" : "SortByIDOrder"
+                     }
+                  },
+                  {
+                     "_name" : "figures",
+                     "_typeName" : "Layer",
+                     "index" : {
+                        "_typeName" : "FlatIndex",
+                        "keyType" : 2
+                     },
+                     "list" : [],
+                     "order" : {
+                        "_typeName" : "SortByIDOrder"
+                     }
+                  },
+                  {
+                     "_name" : "lights",
+                     "_typeName" : "Layer",
+                     "index" : {
+                        "_typeName" : "FlatIndex",
+                        "keyType" : 2
+                     },
+                     "list" : [],
+                     "order" : {
+                        "_typeName" : "SortByIDOrder"
+                     }
+                  }
+               ],
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               }
+            }
+         ],
+         "position" : {
+            "_typeName" : "AligningOffset",
+            "horAlign" : 1,
+            "horOffset" : {
+               "_typeName" : "RelativeValue",
+               "type" : 1,
+               "value" : 0
+            },
+            "vertAlign" : 1,
+            "vertOffset" : {
+               "_typeName" : "RelativeValue",
+               "type" : 1,
+               "value" : 0
+            }
+         }
+      }
+   ],
+   "position" : {
+      "_typeName" : "AligningOffset",
+      "horAlign" : 1,
+      "horOffset" : {
+         "_typeName" : "RelativeValue",
+         "type" : 1,
+         "value" : 0
+      },
+      "vertAlign" : 1,
+      "vertOffset" : {
+         "_typeName" : "RelativeValue",
+         "type" : 1,
+         "value" : 0
+      }
+   }
+}

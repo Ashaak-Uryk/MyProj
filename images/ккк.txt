@@ -1,0 +1,80 @@
+for (int y = 0; y < 8; y++)
+		{
+			for (int x = 0; x < 8; x++)
+			{
+				//auto pawn = figures.load("Pawn.json", 50*x, 50*y);
+				auto square = squares.load("Square.json", 50 * x, 50 * y);
+				if ((x + y) % 2 != 0)
+				{
+					square.skin<FilledRect>().setColor(172, 125, 96);
+				}
+				else
+				{
+					square.skin<FilledRect>().setColor(250, 233, 209);
+				}
+
+
+				if (y == 1)
+				{
+					auto pawn = figures.load("Pawn.json", 50 * x, 50 * y);
+					pawn.skin<Texture>().setColor(0, 0, 0);
+					P.x = x; P.y = y;
+				}
+
+				if (y == 6)
+				{
+					auto pawn = figures.load("Pawn.json", 50 * x, 50 * y);
+					pawn.skin<Texture>().setColor(255, 255, 255);
+				}
+
+				if (y == 0)
+				{
+					if (x == 0 || x == 7)
+					{
+						auto rook = figures.load("Rook.json", 50 * x, 50 * y);
+						rook.skin<Texture>().setColor(0, 0, 0);
+					}
+
+					if (x == 1 || x == 6)
+					{
+						auto dishop = figures.load("Dishop.json", 50 * x, 50 * y);
+						dishop.skin<Texture>().setColor(0, 0, 0);
+					}
+
+					if (x == 2 || x == 5)
+					{
+						auto knight = figures.load("Knight.json", 50 * x, 50 * y);
+						knight.skin<Texture>().setColor(0, 0, 0);
+					}
+
+					if (x == 3)
+					{
+						auto queen = figures.load("Queen.json", 50 * x, 50 * y);
+						queen.skin<Texture>().setColor(0, 0, 0);
+					}
+
+					if (x == 4)
+					{
+						auto king = figures.load("King.json", 50 * x, 50 * y);
+						king.skin<Texture>().setColor(0, 0, 0);
+					}
+				}
+
+				if (y == 7)
+				{
+					if (x == 0 || x == 7)
+						auto rook = figures.load("Rook.json", 50 * x, 50 * y);
+
+					if (x == 1 || x == 6)
+						auto dishop = figures.load("Dishop.json", 50 * x, 50 * y);
+
+					if (x == 2 || x == 5)
+						auto knight = figures.load("Knight.json", 50 * x, 50 * y);
+
+					if (x == 3)
+						auto queen = figures.load("Queen.json", 50 * x, 50 * y);
+
+					if (x == 4)
+						auto king = figures.load("King.json", 50 * x, 50 * y);
+				}
+			}

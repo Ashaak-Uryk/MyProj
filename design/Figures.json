@@ -1,0 +1,356 @@
+{
+   "_name" : "Figures",
+   "_typeName" : "ObjectConstruct",
+   "_version" : "VER3",
+   "animations" : [],
+   "finder" : {
+      "_typeName" : "FindableGeometryElement",
+      "geom" : {
+         "_typeName" : "IdenticGeometry"
+      }
+   },
+   "id" : 0,
+   "position" : {
+      "_typeName" : "PositionElement",
+      "angle" : 0,
+      "offset" : [ 0, 0 ],
+      "scaleX" : 1,
+      "scaleY" : 1
+   },
+   "selector" : {
+      "_typeName" : "PressableAndClickableElement",
+      "clickTime" : 500
+   },
+   "skin" : {
+      "_typeName" : "CanvasLayout",
+      "adjustment" : 0,
+      "box" : {
+         "_typeName" : "RelativeBox",
+         "height" : {
+            "_typeName" : "RelativeValue",
+            "type" : 0,
+            "value" : 0
+         },
+         "offset" : {
+            "_empty" : true
+         },
+         "width" : {
+            "_typeName" : "RelativeValue",
+            "type" : 0,
+            "value" : 0
+         }
+      },
+      "list" : [
+         {
+            "_name" : "Pawns",
+            "_typeName" : "ObjectConstruct",
+            "animations" : [],
+            "finder" : {
+               "_typeName" : "FindableGeometryElement",
+               "geom" : {
+                  "_typeName" : "IdenticGeometry"
+               }
+            },
+            "id" : 0,
+            "position" : {
+               "_typeName" : "PositionElement",
+               "angle" : 0,
+               "offset" : [ 0, 0 ],
+               "scaleX" : 1,
+               "scaleY" : 1
+            },
+            "selector" : {
+               "_typeName" : "PressableAndClickableElement",
+               "clickTime" : 500
+            },
+            "skin" : {
+               "_typeName" : "StaticTextureRect",
+               "box" : {
+                  "_typeName" : "PixelBox",
+                  "height" : 32,
+                  "width" : 32
+               },
+               "color" : [ 1, 1, 1, 1 ],
+               "imageName" : ".\\Pawn.png",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               }
+            },
+            "transitionAnimations" : []
+         },
+         {
+            "_name" : "Kings",
+            "_typeName" : "ObjectConstruct",
+            "animations" : [],
+            "finder" : {
+               "_typeName" : "FindableGeometryElement",
+               "geom" : {
+                  "_typeName" : "IdenticGeometry"
+               }
+            },
+            "id" : 0,
+            "position" : {
+               "_typeName" : "PositionElement",
+               "angle" : 0,
+               "offset" : [ 0, 0 ],
+               "scaleX" : 1,
+               "scaleY" : 1
+            },
+            "selector" : {
+               "_typeName" : "PressableAndClickableElement",
+               "clickTime" : 500
+            },
+            "skin" : {
+               "_typeName" : "StaticTextureRect",
+               "box" : {
+                  "_typeName" : "PixelBox",
+                  "height" : 32,
+                  "width" : 32
+               },
+               "color" : [ 1, 1, 1, 1 ],
+               "imageName" : ".\\King.png",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               }
+            },
+            "transitionAnimations" : []
+         },
+         {
+            "_name" : "Queens",
+            "_typeName" : "ObjectConstruct",
+            "animations" : [],
+            "finder" : {
+               "_typeName" : "FindableGeometryElement",
+               "geom" : {
+                  "_typeName" : "IdenticGeometry"
+               }
+            },
+            "id" : 0,
+            "position" : {
+               "_typeName" : "PositionElement",
+               "angle" : 0,
+               "offset" : [ 0, 0 ],
+               "scaleX" : 1,
+               "scaleY" : 1
+            },
+            "selector" : {
+               "_typeName" : "PressableAndClickableElement",
+               "clickTime" : 500
+            },
+            "skin" : {
+               "_typeName" : "StaticTextureRect",
+               "box" : {
+                  "_typeName" : "PixelBox",
+                  "height" : 32,
+                  "width" : 32
+               },
+               "color" : [ 1, 1, 1, 1 ],
+               "imageName" : ".\\Queen.png",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               }
+            },
+            "transitionAnimations" : []
+         },
+         {
+            "_name" : "Knights",
+            "_typeName" : "ObjectConstruct",
+            "animations" : [],
+            "finder" : {
+               "_typeName" : "FindableGeometryElement",
+               "geom" : {
+                  "_typeName" : "IdenticGeometry"
+               }
+            },
+            "id" : 0,
+            "position" : {
+               "_typeName" : "PositionElement",
+               "angle" : 0,
+               "offset" : [ 0, 0 ],
+               "scaleX" : 1,
+               "scaleY" : 1
+            },
+            "selector" : {
+               "_typeName" : "PressableAndClickableElement",
+               "clickTime" : 500
+            },
+            "skin" : {
+               "_typeName" : "StaticTextureRect",
+               "box" : {
+                  "_typeName" : "PixelBox",
+                  "height" : 32,
+                  "width" : 32
+               },
+               "color" : [ 1, 1, 1, 1 ],
+               "imageName" : ".\\Knight.png",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               }
+            },
+            "transitionAnimations" : []
+         },
+         {
+            "_name" : "Dishops",
+            "_typeName" : "ObjectConstruct",
+            "animations" : [],
+            "finder" : {
+               "_typeName" : "FindableGeometryElement",
+               "geom" : {
+                  "_typeName" : "IdenticGeometry"
+               }
+            },
+            "id" : 0,
+            "position" : {
+               "_typeName" : "PositionElement",
+               "angle" : 0,
+               "offset" : [ 0, 0 ],
+               "scaleX" : 1,
+               "scaleY" : 1
+            },
+            "selector" : {
+               "_typeName" : "PressableAndClickableElement",
+               "clickTime" : 500
+            },
+            "skin" : {
+               "_typeName" : "StaticTextureRect",
+               "box" : {
+                  "_typeName" : "PixelBox",
+                  "height" : 32,
+                  "width" : 32
+               },
+               "color" : [ 1, 1, 1, 1 ],
+               "imageName" : ".\\Dishop.png",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               }
+            },
+            "transitionAnimations" : []
+         },
+         {
+            "_name" : "Rooks",
+            "_typeName" : "ObjectConstruct",
+            "animations" : [],
+            "finder" : {
+               "_typeName" : "FindableGeometryElement",
+               "geom" : {
+                  "_typeName" : "IdenticGeometry"
+               }
+            },
+            "id" : 0,
+            "position" : {
+               "_typeName" : "PositionElement",
+               "angle" : 0,
+               "offset" : [ 0, 0 ],
+               "scaleX" : 1,
+               "scaleY" : 1
+            },
+            "selector" : {
+               "_typeName" : "PressableAndClickableElement",
+               "clickTime" : 500
+            },
+            "skin" : {
+               "_typeName" : "StaticTextureRect",
+               "box" : {
+                  "_typeName" : "PixelBox",
+                  "height" : 32,
+                  "width" : 32
+               },
+               "color" : [ 1, 1, 1, 1 ],
+               "imageName" : ".\\Rook.png",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               }
+            },
+            "transitionAnimations" : []
+         }
+      ],
+      "position" : {
+         "_typeName" : "AligningOffset",
+         "horAlign" : 1,
+         "horOffset" : {
+            "_typeName" : "RelativeValue",
+            "type" : 1,
+            "value" : 0
+         },
+         "vertAlign" : 1,
+         "vertOffset" : {
+            "_typeName" : "RelativeValue",
+            "type" : 1,
+            "value" : 0
+         }
+      }
+   },
+   "transitionAnimations" : []
+}
