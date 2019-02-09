@@ -66,6 +66,7 @@ vector<IntVec2> movePawn(State& state, IntVec2 p)
 	return v;
 }
 
+
 class MyApp : public App
 {
 	void load()
