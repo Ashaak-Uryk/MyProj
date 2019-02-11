@@ -63,15 +63,177 @@ vector<IntVec2> movePawn(State& state, IntVec2 p)
 			}
 
 			int d = isWhite ? 1 : 6;
-			if (p.y == d && state.omap[p.x][p.y + 2 * dir] == Neutral)
+			if (p.y == d && state.omap[p.x][p.y + 2 * dir] == Neutral 
+				&& state.omap[p.x][p.y + 1 * dir] == Neutral)
 			{
 				v.emplace_back(p.x, p.y + 2 * dir);
 			}
 		}
+
 	}
+
 
 	return v;
 }
+/*   Knight
+				
+				if (state.omap[p.x-1][p.y+2] == Neutral && p.x-1 >= 0 && p.y+2 < 8)
+					v.emplace_back(p.x-1, p.y+2);
+
+				if (state.omap[p.x+1][p.y+2] == Neutral && p.x+1 < 8 && p.y+2 < 8)
+					v.emplace_back(p.x+1, p.y+2);
+
+				if (state.omap[p.x-1][p.y-2] == Neutral && p.x-1 >= 0 && p.y-2 >=0)
+					v.emplace_back(p.x-1, p.y-2);
+
+				if (state.omap[p.x+1][p.y-2] == Neutral && p.x+1 < 8 && p.y-2 >=0)
+					v.emplace_back(p.x+1, p.y-2);
+
+				if (state.omap[p.x+2][p.y+1] == Neutral && p.x+2 <8 && p.y+1 < 8)
+					v.emplace_back(p.x+2, p.y+1);
+
+				if (state.omap[p.x+2][p.y-1] == Neutral && p.x+2 < 8 && p.y-1 >=0)
+					v.emplace_back(p.x+2, p.y-1);
+
+				if (state.omap[p.x-2][p.y+1] == Neutral && p.x-2 >= 0 && p.y+1 <8)
+					v.emplace_back(p.x-2, p.y+1);
+
+				if (state.omap[p.x-2][p.y-1] == Neutral && p.x-2 >= 0 && p.y-1 >=0)
+					v.emplace_back(p.x-2, p.y-1);
+				
+	King
+
+				int yN1 = p.y + dir, yN2 = p.y - dir;
+
+				if (p.y+1 < 8)
+				{				
+					if (state.omap[p.x][yN1] == Neutral)
+						v.emplace_back(p.x, p.y+1);
+
+					if (state.omap[p.x+1][yN1] == Neutral)
+						v.emplace_back(p.x+1, p.y+1);
+
+					if (state.omap[p.x-1][yN1] == Neutral)
+						v.emplace_back(p.x-1, p.y+1);
+				}
+
+				if (yN2 >= 0)
+				{
+					if (state.omap[p.x][yN2] == Neutral)
+						v.emplace_back(p.x, yN2);
+
+					if (state.omap[p.x+1][yN2] == Neutral)
+						v.emplace_back(p.x+1, yN2);
+
+					if (state.omap[p.x-1][yN2] == Neutral)
+						v.emplace_back(p.x-1, yN2);
+				}
+
+				if (state.omap[p.x+1][p.y] == Neutral)
+						v.emplace_back(p.x+1, p.y);
+
+				if (state.omap[p.x-1][p.y] == Neutral)
+						v.emplace_back(p.x-1, p.y);
+
+	Rook
+				for (int i = 1; i < 8; i++)
+				{
+				if (state.omap[p.x+i][p.y] == Neutral && p.x+i < 8)
+						v.emplace_back(p.x+i, p.y);
+				}
+
+				for (int i = 1; i < 7; i++)
+				{
+				if (state.omap[p.x-i][p.y] == Neutral && p.x-i >= 0)
+						v.emplace_back(p.x-i, p.y);
+				}
+
+				for (int i = 1; i < 7; i++)
+				{
+				if (state.omap[p.x][p.y+i] == Neutral && p.y+i < 8)
+						v.emplace_back(p.x, p.y+i);
+				}
+
+				for (int i = 1; i < 7; i++)
+				{
+				if (state.omap[p.x][p.y-i] == Neutral && p.y-i >= 0)
+						v.emplace_back(p.x, p.y-i);
+				}
+
+
+	Bishop
+				for (int i = 1; i < 8; i++)
+				  {
+					if (state.omap[p.x+i][p.y+i] == Neutral && p.x+i < 8 && p.y+i < 8)
+							v.emplace_back(p.x+i, p.y+i);
+				  }
+
+				 for (int i = 1; i < 7; i++)
+				  {
+					if (state.omap[p.x-i][p.y-i] == Neutral && p.x-i >= 0 && p.y-i >= 0)
+							v.emplace_back(p.x-i, p.y-i);
+				  }
+
+				 for (int i = 1; i < 7; i++)
+				  {
+					if (state.omap[p.x-1][p.y+i] == Neutral && p.x-1 >= 0 && p.y+i < 8)
+							v.emplace_back(p.x-1, p.y+i);
+				  }
+
+				 for (int i = 1; i < 7; i++)
+				  {
+					if (state.omap[p.x+1][p.y-i] == Neutral && p.x+1 < 8 && p.y-i >= 0)
+							v.emplace_back(p.x+1, p.y-i);
+				  }
+
+	Queen
+				for (int i = 1; i < 8; i++)
+				  {
+					if (state.omap[p.x+i][p.y+i] == Neutral && p.x+i < 8 && p.y+i < 8)
+							v.emplace_back(p.x+i, p.y+i);
+				  }
+
+				 for (int i = 1; i < 7; i++)
+				  {
+					if (state.omap[p.x-i][p.y-i] == Neutral && p.x-i >= 0 && p.y-i >= 0)
+							v.emplace_back(p.x-i, p.y-i);
+				  }
+
+				 for (int i = 1; i < 7; i++)
+				  {
+					if (state.omap[p.x-1][p.y+i] == Neutral && p.x-1 >= 0 && p.y+i < 8)
+							v.emplace_back(p.x-1, p.y+i);
+				  }
+
+				 for (int i = 1; i < 7; i++)
+				  {
+					if (state.omap[p.x+1][p.y-i] == Neutral && p.x+1 < 8 && p.y-i >= 0)
+							v.emplace_back(p.x+1, p.y-i);
+				  }
+				  for (int i = 1; i < 8; i++)
+				  {
+					if (state.omap[p.x+i][p.y+i] == Neutral && p.x+i < 8 && p.y+i < 8)
+							v.emplace_back(p.x+i, p.y+i);
+				  }
+
+				 for (int i = 1; i < 7; i++)
+				  {
+					if (state.omap[p.x-i][p.y-i] == Neutral && p.x-i >= 0 && p.y-i >= 0)
+							v.emplace_back(p.x-i, p.y-i);
+				  }
+
+				 for (int i = 1; i < 7; i++)
+				  {
+					if (state.omap[p.x-1][p.y+i] == Neutral && p.x-1 >= 0 && p.y+i < 8)
+							v.emplace_back(p.x-1, p.y+i);
+				  }
+
+				 for (int i = 1; i < 7; i++)
+				  {
+					if (state.omap[p.x+1][p.y-i] == Neutral && p.x+1 < 8 && p.y-i >= 0)
+							v.emplace_back(p.x+1, p.y-i);
+				  }
+}*/
 
 
 class MyApp : public App
@@ -203,6 +365,24 @@ class MyApp : public App
 			{
 				if (g2 == v)
 				{
+					if (HamI == 0)
+					{
+						if (state.omap[g2] == Black)
+							for (auto i : figures.find(g2.x * 50, g2.y * 50))
+								i.kill();
+						state.gmap[g2] = None;
+						state.omap[g2] = Neutral;
+					}
+					else
+					{
+						if (state.omap[g2] == White)
+							for (auto i : figures.find(g2.x * 50, g2.y * 50))
+								i.kill();
+						state.gmap[g2] = None;
+						state.omap[g2] = Neutral;
+					}
+					figures.find(g1.x * 50, g1.y * 50).back().setPos(g2.x * 50, g2.y * 50);
+					
 					state.gmap[g2] = Pawn;
 					state.gmap[g1] = None;
 					if (HamI == 0)
@@ -210,7 +390,7 @@ class MyApp : public App
 					if(HamI == 1)
 					state.omap[g2] = Black;
 					state.omap[g1] = Neutral;
-					figures.find(g1.x * 50, g1.y * 50).back().setPos(g2.x * 50, g2.y * 50);
+					
 					if (HamI == 0) { HamI = 1; }
 					else { HamI = 0; }
 					lights.clear();
