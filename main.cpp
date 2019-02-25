@@ -27,6 +27,11 @@ struct State
 	GameMap omap;
 	vector<IntVec2> walkTB;
 	vector<IntVec2> walkTW;
+	bool kingW;
+	bool kingB;
+	vector<IntVec2> rookW;
+	vector<IntVec2> rookB;
+
 
 	bool isN(int x, int y)
 	{
@@ -93,12 +98,12 @@ vector<IntVec2> movePawn(State& state, IntVec2 p)
 				auto& walkT = state.HamI == White ? state.walkTB : state.walkTW;
 				for( auto n : walkT)
 				{ 
-					if (p.x+1 < 8 && p.x + 1 == n.x && yNext == n.y)
+					if (p.x + 1 == n.x && yNext == n.y)
 					{
 						v.emplace_back(p.x + 1, yNext);
 					}
 
-					if (p.x-1 >=0 && p.x - 1 == n.x && yNext == n.y)
+					if (p.x - 1 == n.x && yNext == n.y)
 					{
 						v.emplace_back(p.x - 1, yNext);
 					}
@@ -176,6 +181,16 @@ vector<IntVec2> movePawn(State& state, IntVec2 p)
 
 		if (state.omap[p.x - 1][p.y] == Neutral)
 			v.emplace_back(p.x - 1, p.y);
+
+		auto& king = state.HamI == White ? state.kingW : state.kingB;
+		auto& rook = state.HamI == White ? state.rookW : state.rookB;
+		if (king)
+		{
+			for (auto n : rook)
+			{
+				v.emplace_back(n);
+			}
+		} //Ќужно задать координаты дл€ каждой ладьи
 	}
 
 	if (state.gmap[p] == Rook || state.gmap[p] == Queen)
@@ -390,7 +405,7 @@ class MyApp : public App
 		}
 		field.setView(200, 200);
 	}
-		
+	
 	IntVec2 cell(Vec2 v)
 	{
 		v.x += 25;
@@ -403,6 +418,7 @@ class MyApp : public App
 	{
 		auto p = field.mousePos();
 		using namespace gamebase::InputKey;
+		//auto WmyO = state.HamI == White ? Black : White;
 
 		if (input.justPressed(MouseLeft))
 		{
@@ -423,69 +439,48 @@ class MyApp : public App
 			{
 				if (g2 == v)
 				{
-					if (state.HamI == White)
+					auto isWhite = state.HamI == White;
+					auto enemy = isWhite ? Black : White;
+					auto& mywalk = isWhite ? state.walkTW : state.walkTB;
+					auto& enemywalk = isWhite ? state.walkTB : state.walkTW;
+					if (state.gmap[g1] == Pawn)
 					{
-						if (state.omap[g1] == Pawn && g2.x-1>=0 && g2.x +1<8 && g1.y == g2.y - 2 && 
-							(state.omap[g2.x + 1][g2.y] == Black || state.omap[g2.x - 1][g2.y] == Black))
-							state.walkT.emplace_back(g2.x, g2.y - 1);
+						int dir = isWhite ? 1 : -1;
+						if (g1.y == g2.y - 2*dir)
+							mywalk.emplace_back(g2.x, g2.y - dir);
 
-						if (state.omap[g2] == Black)
-							for (auto i : figures.find(g2.x * 50, g2.y * 50))
-								i.kill();
-
-						for (auto n : state.walkT)
+						for (auto n : enemywalk)
 						{
 							if (n == g2)
 							{
-								state.gmap[g2.x][g2.y - 1] = None;
-								state.omap[g2.x][g2.y - 1] = Neutral;
-								state.walkT.clear();
-							}
-							
-
-						}
-
-						state.gmap[g2] = None;
-						state.omap[g2] = Neutral;
-					}
-					else
-					{
-
-						if (state.omap[g1] == Pawn && g2.x - 1 >= 0 && g2.x + 1 < 8 && g1.y == g2.y + 2 && (state.omap[g2.x + 1][g2.y] == White ||
-							state.omap[g2.x - 1][g2.y] == White))
-							state.walkT.emplace_back(g2.x, g2.y + 1); 
-
-							if (state.omap[g2] == White)
-								for (auto i : figures.find(g2.x * 50, g2.y * 50))
+								state.gmap[g2.x][g2.y - dir] = None;
+								state.omap[g2.x][g2.y - dir] = Neutral;
+								for (auto i : figures.find(g2.x * 50, (g2.y-dir) * 50))
 									i.kill();
-
-						for (auto n : state.walkT)
-						{
-							if (n == g2)
-							{
-								state.gmap[g2.x][g2.y + 1] = None;
-								state.omap[g2.x][g2.y + 1] = Neutral;
-								state.walkT.clear();
 							}
-							
+
 						}
-							state.gmap[g2] = None;
-							state.omap[g2] = Neutral;
 					}
-						figures.find(g1.x * 50, g1.y * 50).back().setPos(g2.x * 50, g2.y * 50);
 
-						
-						state.gmap[g2] = state.gmap[g1];
-						state.gmap[g1] = None;
-						state.omap[g2] = state.HamI;
-						state.omap[g1] = Neutral;
-						
+					if (state.omap[g2] == enemy)
+						for (auto i : figures.find(g2.x * 50, g2.y * 50))
+							i.kill();
+					enemywalk.clear();
 
-						if (state.HamI == White) { state.HamI = Black; }
-						else { state.HamI = White; }
-						lights.clear();
-						tPos.clear();
-					
+					figures.find(g1.x * 50, g1.y * 50).back().setPos(g2.x * 50, g2.y * 50);
+
+					state.gmap[g2] = state.gmap[g1];
+					state.omap[g2] = state.HamI;
+					state.gmap[g1] = None;
+					state.omap[g1] = Neutral;
+					//if (state.omap[g2] == Rook && state.gmap[g2] == White) //нужно удалить координаты походившей ладьи из вектора
+					// если король двигалс€ сменить true на false
+
+
+					if (state.HamI == White) { state.HamI = Black; }
+					else { state.HamI = White; }
+					lights.clear();
+					tPos.clear();
 				}
 			}
 
