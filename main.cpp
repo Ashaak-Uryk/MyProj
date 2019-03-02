@@ -27,11 +27,10 @@ struct State
 	GameMap omap;
 	vector<IntVec2> walkTB;
 	vector<IntVec2> walkTW;
-	bool kingW;
-	bool kingB;
-	vector<IntVec2> rookW;
-	vector<IntVec2> rookB;
-
+	bool kingW = true;
+	bool kingB = true;
+	vector<bool> rookW = { true, true };
+	vector<bool> rookB = { true, true };
 
 	bool isN(int x, int y)
 	{
@@ -151,8 +150,9 @@ vector<IntVec2> movePawn(State& state, IntVec2 p)
 	if (state.gmap[p] == King)
 	{
 		int yN1 = p.y + 1, yN2 = p.y - 1;
+		int xN1 = p.x + 1, xN2 = p.x - 1;
 
-		if (yN1 < 8)
+		if (yN1 < 8 && xN1<8)
 		{
 			if (state.omap[p.x][yN1] == Neutral)
 				v.emplace_back(p.x, yN1);
@@ -169,27 +169,37 @@ vector<IntVec2> movePawn(State& state, IntVec2 p)
 			if (state.omap[p.x][yN2] == Neutral)
 				v.emplace_back(p.x, yN2);
 
-			if (state.omap[p.x + 1][yN2] == Neutral)
-				v.emplace_back(p.x + 1, yN2);
+			if (state.omap[xN1][yN2] == Neutral)
+				v.emplace_back(xN1, yN2);
 
-			if (state.omap[p.x - 1][yN2] == Neutral)
-				v.emplace_back(p.x - 1, yN2);
+			if (state.omap[xN2][yN2] == Neutral)
+				v.emplace_back(xN2, yN2);
 		}
 
-		if (state.omap[p.x + 1][p.y] == Neutral)
+		if (xN1 < 8 && state.omap[p.x + 1][p.y] == Neutral)
 			v.emplace_back(p.x + 1, p.y);
 
-		if (state.omap[p.x - 1][p.y] == Neutral)
+		if (xN2>=0 && state.omap[p.x - 1][p.y] == Neutral)
 			v.emplace_back(p.x - 1, p.y);
 
 		auto& king = state.HamI == White ? state.kingW : state.kingB;
 		auto& rook = state.HamI == White ? state.rookW : state.rookB;
 		if (king)
 		{
-			for (auto n : rook)
+			
+			if (state.gmap[p.x - 1][p.y] == None && state.gmap[p.x - 2][p.y] == None && state.gmap[p.x - 3][p.y] == Rook && rook[0] == true)
 			{
-				v.emplace_back(n);
+				v.emplace_back(p.x - 2, p.y);
 			}
+		
+			
+			if (state.gmap[p.x + 1][p.y] == None && state.gmap[p.x + 2][p.y] == None && state.gmap[p.x + 3][p.y] == None && state.gmap[p.x + 4][p.y] == Rook 
+				&& rook[1] == true)
+			{
+				v.emplace_back(p.x + 2, p.y);
+			}
+			
+			
 		} //Ќужно задать координаты дл€ каждой ладьи
 	}
 
@@ -346,8 +356,8 @@ class MyApp : public App
 			}
 		}   
 
-		state.gmap = loadMap("pole.png", colorToType);
-		state.omap = loadMap("owner.png", colorToOwner);
+		state.gmap = loadMap("pole1.png", colorToType);
+		state.omap = loadMap("owner1.png", colorToOwner);
 
 	
 		for (int x = 0; x < state.gmap.w; ++x)
@@ -462,21 +472,60 @@ class MyApp : public App
 						}
 					}
 
+					
 					if (state.omap[g2] == enemy)
 						for (auto i : figures.find(g2.x * 50, g2.y * 50))
 							i.kill();
 					enemywalk.clear();
 
 					figures.find(g1.x * 50, g1.y * 50).back().setPos(g2.x * 50, g2.y * 50);
-
 					state.gmap[g2] = state.gmap[g1];
 					state.omap[g2] = state.HamI;
-					state.gmap[g1] = None;
-					state.omap[g1] = Neutral;
-					//if (state.omap[g2] == Rook && state.gmap[g2] == White) //нужно удалить координаты походившей ладьи из вектора
+					auto& king = state.HamI == White ? state.kingW : state.kingB;
+					auto& rook = state.HamI == White ? state.rookW : state.rookB;
+					if (state.gmap[g1] == Rook)
+					{
+						if (g2.x > 4)
+						{
+							rook[1] = false;
+						}
+						else
+						{
+							rook[0] = false;
+						}
+					}
+					if (state.gmap[g1] == King && !(g1.x + 2 == g2.x || g1.x - 2 == g2.x))
+					{
+						king = false;
+					}
+					if ((g1.x + 2 == g2.x || g1.x - 2 == g2.x) && state.gmap[g1] == King && isWhite)
+					{
+						king = false;
+						figures.find(g1.x * 50, g1.y * 50).back().setPos(g2.x * 50, g2.y * 50);
+						if (g2.x > 4)
+						{
+							figures.find((g1.x + 4) * 50, g1.y * 50).back().setPos((g1.x + 1) * 50, g1.y * 50);
+							rook[1] = false;
+							state.gmap[g1.x + 1][g1.y] = Rook;
+							state.omap[g1.x + 1][g1.y] = state.HamI;
+							state.gmap[g1.x + 4][g1.y] = None;
+							state.omap[g1.x + 4][g1.y] = Neutral;
+						}
+						else
+						{ 
+							figures.find((g1.x - 3) * 50, g1.y * 50).back().setPos((g1.x - 1) * 50, g1.y * 50);
+							rook[0] = false;
+							state.gmap[g1.x - 1][g1.y] = Rook;
+							state.omap[g1.x - 1][g1.y] = state.HamI;
+							state.gmap[g1.x - 3][g1.y] = None;
+							state.omap[g1.x - 3][g1.y] = Neutral;
+						}
+					}
+						state.gmap[g1] = None;
+						state.omap[g1] = Neutral;
+					//if (state.gmap[g2] == Rook && state.omap[g2] == White) //нужно удалить координаты походившей ладьи из вектора
 					// если король двигалс€ сменить true на false
-
-
+					
 					if (state.HamI == White) { state.HamI = Black; }
 					else { state.HamI = White; }
 					lights.clear();
