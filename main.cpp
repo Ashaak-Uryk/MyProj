@@ -197,10 +197,8 @@ vector<IntVec2> movePawn(State& state, IntVec2 p)
 				&& rook[1] == true)
 			{
 				v.emplace_back(p.x + 2, p.y);
-			}
-			
-			
-		} //Ќужно задать координаты дл€ каждой ладьи
+			}	
+		}
 	}
 
 	if (state.gmap[p] == Rook || state.gmap[p] == Queen)
@@ -523,9 +521,7 @@ class MyApp : public App
 					}
 						state.gmap[g1] = None;
 						state.omap[g1] = Neutral;
-					//if (state.gmap[g2] == Rook && state.omap[g2] == White) //нужно удалить координаты походившей ладьи из вектора
-					// если король двигалс€ сменить true на false
-					
+
 					if (state.HamI == White) { state.HamI = Black; }
 					else { state.HamI = White; }
 					lights.clear();
