@@ -60,6 +60,7 @@ struct State
 	}
 
 	int HamI =White;
+
 };
 
 vector<IntVec2> movePawn(State& state, IntVec2 p)
@@ -187,13 +188,15 @@ vector<IntVec2> movePawn(State& state, IntVec2 p)
 		if (king)
 		{
 			
-			if (state.gmap[p.x - 1][p.y] == None && state.gmap[p.x - 2][p.y] == None && state.gmap[p.x - 3][p.y] == Rook && rook[0] == true)
+			if (state.gmap[p.x - 1][p.y] == None && state.gmap[p.x - 2][p.y] == None 
+				&& state.gmap[p.x - 3][p.y] == Rook && rook[0] == true)
 			{
 				v.emplace_back(p.x - 2, p.y);
 			}
 		
 			
-			if (state.gmap[p.x + 1][p.y] == None && state.gmap[p.x + 2][p.y] == None && state.gmap[p.x + 3][p.y] == None && state.gmap[p.x + 4][p.y] == Rook 
+			if (state.gmap[p.x + 1][p.y] == None && state.gmap[p.x + 2][p.y] == None 
+				&& state.gmap[p.x + 3][p.y] == None && state.gmap[p.x + 4][p.y] == Rook 
 				&& rook[1] == true)
 			{
 				v.emplace_back(p.x + 2, p.y);
@@ -354,8 +357,8 @@ class MyApp : public App
 			}
 		}   
 
-		state.gmap = loadMap("pole1.png", colorToType);
-		state.omap = loadMap("owner1.png", colorToOwner);
+		state.gmap = loadMap("pole.png", colorToType);
+		state.omap = loadMap("owner.png", colorToOwner);
 
 	
 		for (int x = 0; x < state.gmap.w; ++x)
@@ -422,6 +425,32 @@ class MyApp : public App
 		return IntVec2(v.x , v.y);
 	}
 
+	/*IntVec2 free(IntVec2 v)
+	{
+		int x, y;
+		vector<IntVec2> n;
+		IntVec2 p = state.gmap[x][y];
+		auto enemy = state.HamI == White ? Black : White;
+		for (int x = 0; x < state.gmap.w; ++x)
+		{
+			for (int y = 0; y < state.gmap.h; ++y)
+			{
+				if (state.omap[x][y] == enemy)
+				{
+					n = movePawn(state, p);
+					for (auto f : n)
+					{
+						if(v == f)
+							
+						
+					}
+				}
+			}
+		}
+	}*/
+
+
+	
 	void process(Input input)
 	{
 		auto p = field.mousePos();
@@ -432,12 +461,44 @@ class MyApp : public App
 		{
 			g1 = cell(p);
 			lights.clear();
-			lights.load("Light.json", cell(p).x * 50, cell(p).y * 50);
-			tPos = movePawn(state, g1);
-			for (auto v : tPos)
+			if (cell(p).x * 50 < 400 && cell(p).x * 50 >= 0 && cell(p).y * 50 < 400 && cell(p).y * 50 >= 0)
 			{
-				auto light = lights.load("Light.json", v.x * 50, v.y * 50);
-				light.skin<Texture>().setColor(0, 75, 255, 100);
+				lights.load("Light.json", cell(p).x * 50, cell(p).y * 50);
+				tPos = movePawn(state, g1);
+				for (auto v : tPos)
+				{
+					auto light = lights.load("Light.json", v.x * 50, v.y * 50);
+					light.skin<Texture>().setColor(0, 75, 255, 100);
+
+					if (state.gmap[v] == King) 
+					{
+					auto light = lights.load("Light.json", v.x * 50, v.y * 50);
+					light.skin<Texture>().setColor(255, 0, 0, 100);
+					}
+					
+					auto enemy = state.HamI == White ? Black : White;
+					for (int x = 0; x < state.gmap.w; ++x)
+					{
+						for (int y = 0; y < state.gmap.h; ++y)
+						{
+							if (state.omap[x][y] == enemy && state.gmap[x][y] == King)
+							{
+								IntVec2 g;
+								g.x = x;
+								g.y = y;
+								auto kPos = movePawn(state, g);
+								for (auto n : kPos)
+								{
+									if (v == n)
+									{
+										auto light = lights.load("Light.json", v.x * 50, v.y * 50);
+										light.skin<Texture>().setColor(84, 0, 122, 100);
+									}
+								}
+							}
+						}       //  попытка шаха 
+					}
+				}
 			}
 		}
 		if (input.justPressed(MouseRight))
@@ -492,11 +553,11 @@ class MyApp : public App
 							rook[0] = false;
 						}
 					}
-					if (state.gmap[g1] == King && !(g1.x + 2 == g2.x || g1.x - 2 == g2.x))
+					if (state.gmap[g1] == King && !(g1.x + 2 == g2.x || g1.x - 2 == g2.x))   //!!!!!!!!!!!!!!!!!!!!!!!!!!
 					{
 						king = false;
 					}
-					if ((g1.x + 2 == g2.x || g1.x - 2 == g2.x) && state.gmap[g1] == King && isWhite)
+					if ((g1.x + 2 == g2.x || g1.x - 2 == g2.x) && state.gmap[g1] == King)
 					{
 						king = false;
 						figures.find(g1.x * 50, g1.y * 50).back().setPos(g2.x * 50, g2.y * 50);
