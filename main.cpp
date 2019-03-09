@@ -59,11 +59,27 @@ struct State
 		return false;
 	}
 
+	void changeP()
+	{
+		if (HamI == White)
+		{ HamI = Black; }
+		else 
+		{ HamI = White; }
+	}
+
 	int HamI =White;
 
 };
 
-vector<IntVec2> movePawn(State& state, IntVec2 p)
+enum MoveType
+{
+	AllAllowed,
+	Hits
+};
+
+bool free(State& state, IntVec2 v);
+
+vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 {
 	vector<IntVec2> v;
 	auto WmyO = state.HamI== White ? Black : White;
@@ -78,9 +94,9 @@ vector<IntVec2> movePawn(State& state, IntVec2 p)
 		{
 			int yNext = p.y + dir;
 
-			if (p.y + 1 < 8 && p.x < 8 && p.x >= 0)
+			if (0 <= yNext && yNext < 8 && p.x < 8 && p.x >= 0)
 			{
-				if (state.omap[p.x][yNext] == Neutral)
+				if (state.omap[p.x][yNext] == Neutral && type!= Hits)
 				{
 					v.emplace_back(p.x, yNext);
 				}
@@ -112,7 +128,7 @@ vector<IntVec2> movePawn(State& state, IntVec2 p)
 
 			int d = isWhite ? 1 : 6;
 			if (p.y == d && state.omap[p.x][p.y + 2 * dir] == Neutral
-				&& state.omap[p.x][p.y + 1 * dir] == Neutral)
+				&& state.omap[p.x][p.y + 1 * dir] == Neutral && type !=Hits)
 			{
 				v.emplace_back(p.x, p.y + 2 * dir);
 
@@ -121,204 +137,271 @@ vector<IntVec2> movePawn(State& state, IntVec2 p)
 
 	
 
-	if (state.gmap[p] == Knight)
-	{
-		if (state.isNE(p.x-1, p.y+2))
-			v.emplace_back(p.x - 1, p.y + 2);
-
-		if (state.isNE(p.x + 1, p.y + 2))
-			v.emplace_back(p.x + 1, p.y + 2);
-
-		if (state.isNE(p.x - 1, p.y - 2))
-			v.emplace_back(p.x - 1, p.y - 2);
-
-		if (state.isNE(p.x + 1, p.y - 2))
-			v.emplace_back(p.x + 1, p.y - 2);
-
-		if (state.isNE(p.x + 2, p.y + 1))
-			v.emplace_back(p.x + 2, p.y + 1);
-
-		if (state.isNE(p.x + 2, p.y - 1))
-			v.emplace_back(p.x + 2, p.y - 1);
-
-		if (state.isNE(p.x - 2, p.y + 1))
-			v.emplace_back(p.x - 2, p.y + 1);
-
-		if (state.isNE(p.x - 2, p.y - 1))
-			v.emplace_back(p.x - 2, p.y - 1);
-	}
-
-	if (state.gmap[p] == King)
-	{
-		int yN1 = p.y + 1, yN2 = p.y - 1;
-		int xN1 = p.x + 1, xN2 = p.x - 1;
-
-		if (yN1 < 8 && xN1<8)
+		if (state.gmap[p] == Knight)
 		{
-			if (state.omap[p.x][yN1] == Neutral)
-				v.emplace_back(p.x, yN1);
+			if (state.isNE(p.x-1, p.y+2))
+				v.emplace_back(p.x - 1, p.y + 2);
 
-			if (state.omap[p.x + 1][yN1] == Neutral)
-				v.emplace_back(p.x + 1, yN1);
+			if (state.isNE(p.x + 1, p.y + 2))
+				v.emplace_back(p.x + 1, p.y + 2);
 
-			if (state.omap[p.x - 1][yN1] == Neutral)
-				v.emplace_back(p.x - 1, yN1);
+			if (state.isNE(p.x - 1, p.y - 2))
+				v.emplace_back(p.x - 1, p.y - 2);
+
+			if (state.isNE(p.x + 1, p.y - 2))
+				v.emplace_back(p.x + 1, p.y - 2);
+
+			if (state.isNE(p.x + 2, p.y + 1))
+				v.emplace_back(p.x + 2, p.y + 1);
+
+			if (state.isNE(p.x + 2, p.y - 1))
+				v.emplace_back(p.x + 2, p.y - 1);
+
+			if (state.isNE(p.x - 2, p.y + 1))
+				v.emplace_back(p.x - 2, p.y + 1);
+
+			if (state.isNE(p.x - 2, p.y - 1))
+				v.emplace_back(p.x - 2, p.y - 1);
 		}
 
-		if (yN2 >= 0)
+		if (state.gmap[p] == King)
 		{
-			if (state.omap[p.x][yN2] == Neutral)
-				v.emplace_back(p.x, yN2);
+			int yN1 = p.y + 1, yN2 = p.y - 1;
+			int xN1 = p.x + 1, xN2 = p.x - 1;
 
-			if (state.omap[xN1][yN2] == Neutral)
-				v.emplace_back(xN1, yN2);
-
-			if (state.omap[xN2][yN2] == Neutral)
-				v.emplace_back(xN2, yN2);
-		}
-
-		if (xN1 < 8 && state.omap[p.x + 1][p.y] == Neutral)
-			v.emplace_back(p.x + 1, p.y);
-
-		if (xN2>=0 && state.omap[p.x - 1][p.y] == Neutral)
-			v.emplace_back(p.x - 1, p.y);
-
-		auto& king = state.HamI == White ? state.kingW : state.kingB;
-		auto& rook = state.HamI == White ? state.rookW : state.rookB;
-		if (king)
-		{
-			
-			if (state.gmap[p.x - 1][p.y] == None && state.gmap[p.x - 2][p.y] == None 
-				&& state.gmap[p.x - 3][p.y] == Rook && rook[0] == true)
+			if (yN1 < 8 && xN1<8)
 			{
-				v.emplace_back(p.x - 2, p.y);
+				if (state.omap[p.x][yN1] == Neutral)
+					v.emplace_back(p.x, yN1);
+
+				if (state.omap[xN1][yN1] == Neutral && xN1 < 8)
+					v.emplace_back(xN1, yN1);
+
+				if (state.omap[xN2][yN1] == Neutral && xN2 >= 0)
+					v.emplace_back(xN2, yN1);
 			}
+
+			if (yN2 >= 0)
+			{
+				if (state.omap[p.x][yN2] == Neutral)
+					v.emplace_back(p.x, yN2);
+
+				if (state.omap[xN1][yN2] == Neutral && xN1 < 8)
+					v.emplace_back(xN1, yN2);
+
+				if (state.omap[xN2][yN2] == Neutral && xN2 >= 0)
+					v.emplace_back(xN2, yN2);
+			}
+
+			if (xN1 < 8 && state.omap[p.x + 1][p.y] == Neutral)
+				v.emplace_back(p.x + 1, p.y);
+
+			if (xN2>=0 && state.omap[p.x - 1][p.y] == Neutral)
+				v.emplace_back(p.x - 1, p.y);
+
+			auto& king = state.HamI == White ? state.kingW : state.kingB;
+			auto& rook = state.HamI == White ? state.rookW : state.rookB;
+			if (king)
+			{
+			
+				if (state.gmap[p.x - 1][p.y] == None && state.gmap[p.x - 2][p.y] == None 
+					&& state.gmap[p.x - 3][p.y] == Rook && rook[0] == true)
+				{
+					v.emplace_back(p.x - 2, p.y);
+				}
 		
 			
-			if (state.gmap[p.x + 1][p.y] == None && state.gmap[p.x + 2][p.y] == None 
-				&& state.gmap[p.x + 3][p.y] == None && state.gmap[p.x + 4][p.y] == Rook 
-				&& rook[1] == true)
+				if (state.gmap[p.x + 1][p.y] == None && state.gmap[p.x + 2][p.y] == None 
+					&& state.gmap[p.x + 3][p.y] == None && state.gmap[p.x + 4][p.y] == Rook 
+					&& rook[1] == true)
+				{
+					v.emplace_back(p.x + 2, p.y);
+				}	
+			}
+		}
+
+		if (state.gmap[p] == Rook || state.gmap[p] == Queen)
+		{
+
+			for (int i = 1; i < 8; i++)
 			{
-				v.emplace_back(p.x + 2, p.y);
-			}	
+				if (state.isN(p.x + i, p.y))
+					v.emplace_back(p.x + i, p.y);
+				else
+				if (state.isE(p.x + i, p.y))
+				{ 
+				 v.emplace_back(p.x + i, p.y);
+				 break;
+				}
+				else break;
+			}
+
+			for (int i = 1; i < 8; i++)
+			{
+				if (state.isN(p.x - i, p.y))
+					v.emplace_back(p.x - i, p.y);
+				else
+				if (state.isE(p.x - i, p.y))
+				{
+					v.emplace_back(p.x - i, p.y);
+					break;
+				}
+				else break;
+			}
+
+			for (int i = 1; i < 8; i++)
+			{
+				if (state.isN(p.x, p.y+ i))
+					v.emplace_back(p.x, p.y + i);
+				else
+				if (state.isE(p.x, p.y + i))
+				{
+					v.emplace_back(p.x, p.y + i);
+					break;
+				}
+				else break;
+			}
+
+			for (int i = 1; i < 8; i++)
+			{
+				if (state.isN(p.x, p.y - i))
+					v.emplace_back(p.x, p.y - i);
+				else 
+				if (state.isE(p.x, p.y - i))
+				{
+					v.emplace_back(p.x, p.y - i);
+					break;
+				}
+				else break;
+			}
+		}
+
+		if (state.gmap[p] == Bishop || state.gmap[p] == Queen)
+		{
+			for (int i = 1; i < 8; i++)
+			{
+				if (state.isN(p.x + i, p.y + i))
+					v.emplace_back(p.x + i, p.y + i);
+				else 
+				if (state.isE(p.x + i, p.y + i))
+				{
+					v.emplace_back(p.x + i, p.y + i);
+					break;
+				}
+				else break;
+			}
+
+			for (int i = 1; i < 8; i++)
+			{
+				if (state.isN(p.x - i, p.y - i))
+					v.emplace_back(p.x - i, p.y - i);
+				else 
+				if (state.isE(p.x - i, p.y - i))
+				{
+					v.emplace_back(p.x - i, p.y - i);
+					break;
+				}
+				else break;
+			}
+
+			for (int i = 1; i < 8; i++)
+			{
+				if (state.isN(p.x - i, p.y + i))
+					v.emplace_back(p.x - i, p.y + i);
+				else 
+				if (state.isE(p.x - i, p.y + i))
+				{
+					v.emplace_back(p.x - i, p.y + i);
+					break;
+				}
+				else break;
+			}
+
+			for (int i = 1; i < 8; i++)
+			{
+				if (state.isN(p.x + i, p.y - i))
+					v.emplace_back(p.x + i, p.y - i);
+				else
+				if (state.isE(p.x + i, p.y - i))
+				{
+					v.emplace_back(p.x + i, p.y - i);
+					break;
+				}
+				else break;
+			}
 		}
 	}
 
-	if (state.gmap[p] == Rook || state.gmap[p] == Queen)
-	{
-
-		for (int i = 1; i < 8; i++)
+	if (type == AllAllowed)
+	{ 
+		vector<IntVec2> v2;
+		IntVec2 king;
+		for (int x = 0; x < state.gmap.w; ++x)
 		{
-			if (state.isN(p.x + i, p.y))
-				v.emplace_back(p.x + i, p.y);
-			else
-			if (state.isE(p.x + i, p.y))
-			{ 
-			 v.emplace_back(p.x + i, p.y);
-			 break;
-			}
-			else break;
-		}
-
-		for (int i = 1; i < 8; i++)
-		{
-			if (state.isN(p.x - i, p.y))
-				v.emplace_back(p.x - i, p.y);
-			else
-			if (state.isE(p.x - i, p.y))
+			for (int y = 0; y < state.gmap.h; ++y)
 			{
-				v.emplace_back(p.x - i, p.y);
-				break;
+				if (state.gmap[x][y] == King && state.omap[x][y] == state.HamI)
+				{
+					king = IntVec2(x, y);
+				}
 			}
-			else break;
 		}
 
-		for (int i = 1; i < 8; i++)
+		state.changeP();
+		
+		for (auto p2 : v)
 		{
-			if (state.isN(p.x, p.y+ i))
-				v.emplace_back(p.x, p.y + i);
-			else
-			if (state.isE(p.x, p.y + i))
-			{
-				v.emplace_back(p.x, p.y + i);
-				break;
-			}
-			else break;
-		}
+			auto Ifking = p == king ? p2 : king;
 
-		for (int i = 1; i < 8; i++)
-		{
-			if (state.isN(p.x, p.y - i))
-				v.emplace_back(p.x, p.y - i);
-			else 
-			if (state.isE(p.x, p.y - i))
+			auto prevFigure = state.gmap[p2];
+			auto prevOwner = state.omap[p2];
+			state.gmap[p2] = state.gmap[p];
+			state.omap[p2] = state.omap[p];
+			state.gmap[p] = None;
+			state.omap[p] = Neutral;
+
+			if (free(state, Ifking))
 			{
-				v.emplace_back(p.x, p.y - i);
-				break;
+				v2.push_back(p2);
 			}
-			else break;
+
+			state.gmap[p] = state.gmap[p2];
+			state.omap[p] = state.omap[p2];
+			state.gmap[p2] = prevFigure;
+			state.omap[p2] = prevOwner;
+
 		}
+		state.changeP();
+
+		return v2;
 	}
 
-	if (state.gmap[p] == Bishop || state.gmap[p] == Queen)
-	{
-		for (int i = 1; i < 8; i++)
-		{
-			if (state.isN(p.x + i, p.y + i))
-				v.emplace_back(p.x + i, p.y + i);
-			else 
-			if (state.isE(p.x + i, p.y + i))
-			{
-				v.emplace_back(p.x + i, p.y + i);
-				break;
-			}
-			else break;
-		}
-
-		for (int i = 1; i < 8; i++)
-		{
-			if (state.isN(p.x - i, p.y - i))
-				v.emplace_back(p.x - i, p.y - i);
-			else 
-			if (state.isE(p.x - i, p.y - i))
-			{
-				v.emplace_back(p.x - i, p.y - i);
-				break;
-			}
-			else break;
-		}
-
-		for (int i = 1; i < 8; i++)
-		{
-			if (state.isN(p.x - i, p.y + i))
-				v.emplace_back(p.x - i, p.y + i);
-			else 
-			if (state.isE(p.x - i, p.y + i))
-			{
-				v.emplace_back(p.x - i, p.y + i);
-				break;
-			}
-			else break;
-		}
-
-		for (int i = 1; i < 8; i++)
-		{
-			if (state.isN(p.x + i, p.y - i))
-				v.emplace_back(p.x + i, p.y - i);
-			else
-			if (state.isE(p.x + i, p.y - i))
-			{
-				v.emplace_back(p.x + i, p.y - i);
-				break;
-			}
-			else break;
-		}
-	}
-	} 
 	return v;
 }										//Сделано движение фигур. Должно работать...
 
-
+bool free(State& state, IntVec2 v)
+{
+	int x, y;
+	vector<IntVec2> n;
+	for (int x = 0; x < state.gmap.w; ++x)
+	{
+		for (int y = 0; y < state.gmap.h; ++y)
+		{
+			if (state.omap[x][y] == state.HamI)
+			{
+				n = movePawn(state, IntVec2(x, y), Hits);
+				for (auto f : n)
+				{
+					if (v == f)
+					{
+						return false;
+					}
+				}
+			}
+		}
+	}
+	return true;
+}
 
 class MyApp : public App
 {
@@ -424,32 +507,6 @@ class MyApp : public App
 		v /=  50;
 		return IntVec2(v.x , v.y);
 	}
-
-	/*IntVec2 free(IntVec2 v)
-	{
-		int x, y;
-		vector<IntVec2> n;
-		IntVec2 p = state.gmap[x][y];
-		auto enemy = state.HamI == White ? Black : White;
-		for (int x = 0; x < state.gmap.w; ++x)
-		{
-			for (int y = 0; y < state.gmap.h; ++y)
-			{
-				if (state.omap[x][y] == enemy)
-				{
-					n = movePawn(state, p);
-					for (auto f : n)
-					{
-						if(v == f)
-							
-						
-					}
-				}
-			}
-		}
-	}*/
-
-
 	
 	void process(Input input)
 	{
@@ -464,40 +521,12 @@ class MyApp : public App
 			if (cell(p).x * 50 < 400 && cell(p).x * 50 >= 0 && cell(p).y * 50 < 400 && cell(p).y * 50 >= 0)
 			{
 				lights.load("Light.json", cell(p).x * 50, cell(p).y * 50);
-				tPos = movePawn(state, g1);
+				tPos = movePawn(state, g1, AllAllowed);
+
 				for (auto v : tPos)
 				{
 					auto light = lights.load("Light.json", v.x * 50, v.y * 50);
 					light.skin<Texture>().setColor(0, 75, 255, 100);
-
-					if (state.gmap[v] == King) 
-					{
-					auto light = lights.load("Light.json", v.x * 50, v.y * 50);
-					light.skin<Texture>().setColor(255, 0, 0, 100);
-					}
-					
-					auto enemy = state.HamI == White ? Black : White;
-					for (int x = 0; x < state.gmap.w; ++x)
-					{
-						for (int y = 0; y < state.gmap.h; ++y)
-						{
-							if (state.omap[x][y] == enemy && state.gmap[x][y] == King)
-							{
-								IntVec2 g;
-								g.x = x;
-								g.y = y;
-								auto kPos = movePawn(state, g);
-								for (auto n : kPos)
-								{
-									if (v == n)
-									{
-										auto light = lights.load("Light.json", v.x * 50, v.y * 50);
-										light.skin<Texture>().setColor(84, 0, 122, 100);
-									}
-								}
-							}
-						}       //  попытка шаха 
-					}
 				}
 			}
 		}
@@ -531,7 +560,7 @@ class MyApp : public App
 						}
 					}
 
-					
+
 					if (state.omap[g2] == enemy)
 						for (auto i : figures.find(g2.x * 50, g2.y * 50))
 							i.kill();
@@ -553,7 +582,7 @@ class MyApp : public App
 							rook[0] = false;
 						}
 					}
-					if (state.gmap[g1] == King && !(g1.x + 2 == g2.x || g1.x - 2 == g2.x))   //!!!!!!!!!!!!!!!!!!!!!!!!!!
+					if (state.gmap[g1] == King && !(g1.x + 2 == g2.x || g1.x - 2 == g2.x))   
 					{
 						king = false;
 					}
@@ -583,8 +612,7 @@ class MyApp : public App
 						state.gmap[g1] = None;
 						state.omap[g1] = Neutral;
 
-					if (state.HamI == White) { state.HamI = Black; }
-					else { state.HamI = White; }
+					state.changeP();
 					lights.clear();
 					tPos.clear();
 				}
@@ -606,6 +634,7 @@ class MyApp : public App
 	IntVec2 g1;
 	IntVec2 g2;
 	IntVec2 vp;
+	IntVec2 ch;
 	vector<IntVec2> tPos;
 };
 
