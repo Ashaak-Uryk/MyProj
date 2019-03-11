@@ -75,8 +75,9 @@
                }
             },
             {
-               "_name" : "field",
-               "_typeName" : "GameView",
+               "_name" : "check",
+               "_typeName" : "StaticLabel",
+               "adjustSize" : true,
                "box" : {
                   "_typeName" : "RelativeBox",
                   "height" : {
@@ -92,6 +93,172 @@
                      "type" : 0,
                      "value" : 0
                   }
+               },
+               "color" : [ 1, 1, 1, 1 ],
+               "outlineColor" : [ 1, 1, 1, 1 ],
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -20
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -250
+                  }
+               },
+               "properties" : {
+                  "_typeName" : "AlignProperties",
+                  "enableStacking" : false,
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Arial",
+                     "size" : 50
+                  },
+                  "horAlign" : 0,
+                  "vertAlign" : 0
+               },
+               "text" : "Check"
+            },
+            {
+               "_name" : "checkmate",
+               "_typeName" : "StaticLabel",
+               "adjustSize" : true,
+               "box" : {
+                  "_typeName" : "RelativeBox",
+                  "height" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 0,
+                     "value" : 0
+                  },
+                  "offset" : {
+                     "_empty" : true
+                  },
+                  "width" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 0,
+                     "value" : 0
+                  }
+               },
+               "color" : [ 1, 1, 1, 1 ],
+               "outlineColor" : [ 1, 1, 1, 1 ],
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -20
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -250
+                  }
+               },
+               "properties" : {
+                  "_typeName" : "AlignProperties",
+                  "enableStacking" : false,
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Arial",
+                     "size" : 50
+                  },
+                  "horAlign" : 0,
+                  "vertAlign" : 0
+               },
+               "text" : "Checkmate"
+            },
+            {
+               "_name" : "black",
+               "_typeName" : "StaticLabel",
+               "adjustSize" : false,
+               "box" : {
+                  "_typeName" : "PixelBox",
+                  "height" : 50,
+                  "width" : 400
+               },
+               "color" : [ 1, 1, 1, 1 ],
+               "outlineColor" : [ 1, 1, 1, 1 ],
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 225
+                  }
+               },
+               "properties" : {
+                  "_typeName" : "AlignProperties",
+                  "enableStacking" : false,
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Arial",
+                     "size" : 50
+                  },
+                  "horAlign" : 0,
+                  "vertAlign" : 0
+               },
+               "text" : "Black"
+            },
+            {
+               "_name" : "white",
+               "_typeName" : "StaticLabel",
+               "adjustSize" : false,
+               "box" : {
+                  "_typeName" : "PixelBox",
+                  "height" : 50,
+                  "width" : 400
+               },
+               "color" : [ 1, 1, 1, 1 ],
+               "outlineColor" : [ 1, 1, 1, 1 ],
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 225
+                  }
+               },
+               "properties" : {
+                  "_typeName" : "AlignProperties",
+                  "enableStacking" : false,
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Arial",
+                     "size" : 50
+                  },
+                  "horAlign" : 2,
+                  "vertAlign" : 0
+               },
+               "text" : "White"
+            },
+            {
+               "_name" : "field",
+               "_typeName" : "GameView",
+               "box" : {
+                  "_typeName" : "PixelBox",
+                  "height" : 400,
+                  "width" : 400
                },
                "list" : [
                   {

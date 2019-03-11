@@ -68,7 +68,8 @@ struct State
 	}
 
 	int HamI =White;
-
+	bool Check = false;
+	bool Checkmate = false;
 };
 
 enum MoveType
@@ -369,13 +370,10 @@ vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 			state.omap[p] = state.omap[p2];
 			state.gmap[p2] = prevFigure;
 			state.omap[p2] = prevOwner;
-
 		}
 		state.changeP();
-
 		return v2;
 	}
-
 	return v;
 }										//Сделано движение фигур. Должно работать...
 
@@ -401,6 +399,44 @@ bool free(State& state, IntVec2 v)
 		}
 	}
 	return true;
+}
+
+bool Ischeck(State& state, IntVec2 v)
+{
+	vector<IntVec2> c;
+	vector<IntVec2> v2;
+	IntVec2 king;
+	for (int x = 0; x < state.gmap.w; ++x)
+	{
+		for (int y = 0; y < state.gmap.h; ++y)
+		{
+			if (state.gmap[x][y] == King && state.omap[x][y] == state.HamI)
+			{
+				king = IntVec2(x, y);
+			}
+		}
+	}
+
+	for (int x = 0; x < state.gmap.w; ++x)
+	{
+		for (int y = 0; y < state.gmap.h; ++y)
+		{
+			if (state.omap[x][y] == !state.HamI)
+			{
+				c = movePawn(state, IntVec2(x, y), Hits);
+				for (auto f : c)
+				{
+					if (f == king)
+					{
+						state.Check = true;
+						return true;
+					}
+				}
+			}
+		}
+	}
+	state.Check = false;
+	return false;
 }
 
 class MyApp : public App
@@ -497,7 +533,10 @@ class MyApp : public App
 			
 			}
 		}
-		field.setView(200, 200);
+		field.setView(400 / 2 - 50 / 2, 400 / 2 - 50 / 2);
+		black.hide();
+		check.hide();
+		checkmate.hide();
 	}
 	
 	IntVec2 cell(Vec2 v)
@@ -510,16 +549,22 @@ class MyApp : public App
 	
 	void process(Input input)
 	{
+		if (state.Check) check.show();
+		else check.hide();
+		if (state.Checkmate) checkmate.show();
+		else checkmate.hide();
+
 		auto p = field.mousePos();
 		using namespace gamebase::InputKey;
 		//auto WmyO = state.HamI == White ? Black : White;
 
-		if (input.justPressed(MouseLeft))
+		if (input.justPressed(MouseLeft) && field.isMouseOn())
 		{
 			g1 = cell(p);
 			lights.clear();
 			if (cell(p).x * 50 < 400 && cell(p).x * 50 >= 0 && cell(p).y * 50 < 400 && cell(p).y * 50 >= 0)
 			{
+				if (state.omap[g1] == state.HamI)
 				lights.load("Light.json", cell(p).x * 50, cell(p).y * 50);
 				tPos = movePawn(state, g1, AllAllowed);
 
@@ -613,6 +658,19 @@ class MyApp : public App
 						state.omap[g1] = Neutral;
 
 					state.changeP();
+					if (state.HamI == Black)
+					{	black.show();
+						white.hide();}
+					else
+					{	white.show();
+						black.hide();}
+
+					Ischeck(state, g2);
+					if (state.Check) check.show();
+					else check.hide();
+					if (state.Checkmate) checkmate.show();
+					else checkmate.hide();
+
 					lights.clear();
 					tPos.clear();
 				}
@@ -631,6 +689,10 @@ class MyApp : public App
 	LayerFromDesign(void, figures);
 	LayerFromDesign(void, squares);
 	LayerFromDesign(void, lights);
+	FromDesign(Label, black);
+	FromDesign(Label, white);
+	FromDesign(Label, check);
+	FromDesign(Label, checkmate);
 	IntVec2 g1;
 	IntVec2 g2;
 	IntVec2 vp;
