@@ -67,9 +67,23 @@ struct State
 		{ HamI = White; }
 	}
 
+	IntVec2 findKing(int owner)
+	{
+		IntVec2 king;
+		for (int x = 0; x < gmap.w; ++x)
+		{
+			for (int y = 0; y < gmap.h; ++y)
+			{
+				if (gmap[x][y] == King && omap[x][y] == owner)
+				{
+					king = IntVec2(x, y);
+				}
+			}
+		}
+		return king;
+	}
+
 	int HamI =White;
-	bool Check = false;
-	bool Checkmate = false;
 };
 
 enum MoveType
@@ -78,12 +92,12 @@ enum MoveType
 	Hits
 };
 
-bool free(State& state, IntVec2 v);
+bool isAttacking(State& state, IntVec2 v);
 
 vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 {
 	vector<IntVec2> v;
-	auto WmyO = state.HamI== White ? Black : White;
+	auto WmyO = state.HamI == White ? Black : White;
 	auto isWhite = state.omap[p] == White;
 	int dir = isWhite ? 1 : -1;
 	auto enemy = isWhite ? Black : White;
@@ -97,7 +111,7 @@ vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 
 			if (0 <= yNext && yNext < 8 && p.x < 8 && p.x >= 0)
 			{
-				if (state.omap[p.x][yNext] == Neutral && type!= Hits)
+				if (state.omap[p.x][yNext] == Neutral && type != Hits)
 				{
 					v.emplace_back(p.x, yNext);
 				}
@@ -113,8 +127,8 @@ vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 				}
 
 				auto& walkT = state.HamI == White ? state.walkTB : state.walkTW;
-				for( auto n : walkT)
-				{ 
+				for (auto n : walkT)
+				{
 					if (p.x + 1 == n.x && yNext == n.y)
 					{
 						v.emplace_back(p.x + 1, yNext);
@@ -129,18 +143,18 @@ vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 
 			int d = isWhite ? 1 : 6;
 			if (p.y == d && state.omap[p.x][p.y + 2 * dir] == Neutral
-				&& state.omap[p.x][p.y + 1 * dir] == Neutral && type !=Hits)
+				&& state.omap[p.x][p.y + 1 * dir] == Neutral && type != Hits)
 			{
 				v.emplace_back(p.x, p.y + 2 * dir);
 
 			}
 		}
 
-	
+
 
 		if (state.gmap[p] == Knight)
 		{
-			if (state.isNE(p.x-1, p.y+2))
+			if (state.isNE(p.x - 1, p.y + 2))
 				v.emplace_back(p.x - 1, p.y + 2);
 
 			if (state.isNE(p.x + 1, p.y + 2))
@@ -170,15 +184,15 @@ vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 			int yN1 = p.y + 1, yN2 = p.y - 1;
 			int xN1 = p.x + 1, xN2 = p.x - 1;
 
-			if (yN1 < 8 && xN1<8)
+			if (yN1 < 8)
 			{
 				if (state.omap[p.x][yN1] == Neutral)
 					v.emplace_back(p.x, yN1);
 
-				if (state.omap[xN1][yN1] == Neutral && xN1 < 8)
+				if (xN1 < 8 && state.omap[xN1][yN1] == Neutral)
 					v.emplace_back(xN1, yN1);
 
-				if (state.omap[xN2][yN1] == Neutral && xN2 >= 0)
+				if (xN2 >= 0 && state.omap[xN2][yN1] == Neutral)
 					v.emplace_back(xN2, yN1);
 			}
 
@@ -187,37 +201,37 @@ vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 				if (state.omap[p.x][yN2] == Neutral)
 					v.emplace_back(p.x, yN2);
 
-				if (state.omap[xN1][yN2] == Neutral && xN1 < 8)
+				if (xN1 < 8 && state.omap[xN1][yN2] == Neutral)
 					v.emplace_back(xN1, yN2);
 
-				if (state.omap[xN2][yN2] == Neutral && xN2 >= 0)
+				if (xN2 >= 0 && state.omap[xN2][yN2] == Neutral)
 					v.emplace_back(xN2, yN2);
 			}
 
 			if (xN1 < 8 && state.omap[p.x + 1][p.y] == Neutral)
 				v.emplace_back(p.x + 1, p.y);
 
-			if (xN2>=0 && state.omap[p.x - 1][p.y] == Neutral)
+			if (xN2 >= 0 && state.omap[p.x - 1][p.y] == Neutral)
 				v.emplace_back(p.x - 1, p.y);
 
 			auto& king = state.HamI == White ? state.kingW : state.kingB;
 			auto& rook = state.HamI == White ? state.rookW : state.rookB;
 			if (king)
 			{
-			
-				if (state.gmap[p.x - 1][p.y] == None && state.gmap[p.x - 2][p.y] == None 
+
+				if (p.x - 3 > 0 && state.gmap[p.x - 1][p.y] == None && state.gmap[p.x - 2][p.y] == None
 					&& state.gmap[p.x - 3][p.y] == Rook && rook[0] == true)
 				{
 					v.emplace_back(p.x - 2, p.y);
 				}
-		
-			
-				if (state.gmap[p.x + 1][p.y] == None && state.gmap[p.x + 2][p.y] == None 
-					&& state.gmap[p.x + 3][p.y] == None && state.gmap[p.x + 4][p.y] == Rook 
+
+
+				if (p.x + 4 < 8 && state.gmap[p.x + 1][p.y] == None && state.gmap[p.x + 2][p.y] == None
+					&& state.gmap[p.x + 3][p.y] == None && state.gmap[p.x + 4][p.y] == Rook
 					&& rook[1] == true)
 				{
 					v.emplace_back(p.x + 2, p.y);
-				}	
+				}
 			}
 		}
 
@@ -229,12 +243,12 @@ vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 				if (state.isN(p.x + i, p.y))
 					v.emplace_back(p.x + i, p.y);
 				else
-				if (state.isE(p.x + i, p.y))
-				{ 
-				 v.emplace_back(p.x + i, p.y);
-				 break;
-				}
-				else break;
+					if (state.isE(p.x + i, p.y))
+					{
+						v.emplace_back(p.x + i, p.y);
+						break;
+					}
+					else break;
 			}
 
 			for (int i = 1; i < 8; i++)
@@ -242,38 +256,38 @@ vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 				if (state.isN(p.x - i, p.y))
 					v.emplace_back(p.x - i, p.y);
 				else
-				if (state.isE(p.x - i, p.y))
-				{
-					v.emplace_back(p.x - i, p.y);
-					break;
-				}
-				else break;
+					if (state.isE(p.x - i, p.y))
+					{
+						v.emplace_back(p.x - i, p.y);
+						break;
+					}
+					else break;
 			}
 
 			for (int i = 1; i < 8; i++)
 			{
-				if (state.isN(p.x, p.y+ i))
+				if (state.isN(p.x, p.y + i))
 					v.emplace_back(p.x, p.y + i);
 				else
-				if (state.isE(p.x, p.y + i))
-				{
-					v.emplace_back(p.x, p.y + i);
-					break;
-				}
-				else break;
+					if (state.isE(p.x, p.y + i))
+					{
+						v.emplace_back(p.x, p.y + i);
+						break;
+					}
+					else break;
 			}
 
 			for (int i = 1; i < 8; i++)
 			{
 				if (state.isN(p.x, p.y - i))
 					v.emplace_back(p.x, p.y - i);
-				else 
-				if (state.isE(p.x, p.y - i))
-				{
-					v.emplace_back(p.x, p.y - i);
-					break;
-				}
-				else break;
+				else
+					if (state.isE(p.x, p.y - i))
+					{
+						v.emplace_back(p.x, p.y - i);
+						break;
+					}
+					else break;
 			}
 		}
 
@@ -283,39 +297,39 @@ vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 			{
 				if (state.isN(p.x + i, p.y + i))
 					v.emplace_back(p.x + i, p.y + i);
-				else 
-				if (state.isE(p.x + i, p.y + i))
-				{
-					v.emplace_back(p.x + i, p.y + i);
-					break;
-				}
-				else break;
+				else
+					if (state.isE(p.x + i, p.y + i))
+					{
+						v.emplace_back(p.x + i, p.y + i);
+						break;
+					}
+					else break;
 			}
 
 			for (int i = 1; i < 8; i++)
 			{
 				if (state.isN(p.x - i, p.y - i))
 					v.emplace_back(p.x - i, p.y - i);
-				else 
-				if (state.isE(p.x - i, p.y - i))
-				{
-					v.emplace_back(p.x - i, p.y - i);
-					break;
-				}
-				else break;
+				else
+					if (state.isE(p.x - i, p.y - i))
+					{
+						v.emplace_back(p.x - i, p.y - i);
+						break;
+					}
+					else break;
 			}
 
 			for (int i = 1; i < 8; i++)
 			{
 				if (state.isN(p.x - i, p.y + i))
 					v.emplace_back(p.x - i, p.y + i);
-				else 
-				if (state.isE(p.x - i, p.y + i))
-				{
-					v.emplace_back(p.x - i, p.y + i);
-					break;
-				}
-				else break;
+				else
+					if (state.isE(p.x - i, p.y + i))
+					{
+						v.emplace_back(p.x - i, p.y + i);
+						break;
+					}
+					else break;
 			}
 
 			for (int i = 1; i < 8; i++)
@@ -323,33 +337,23 @@ vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 				if (state.isN(p.x + i, p.y - i))
 					v.emplace_back(p.x + i, p.y - i);
 				else
-				if (state.isE(p.x + i, p.y - i))
-				{
-					v.emplace_back(p.x + i, p.y - i);
-					break;
-				}
-				else break;
+					if (state.isE(p.x + i, p.y - i))
+					{
+						v.emplace_back(p.x + i, p.y - i);
+						break;
+					}
+					else break;
 			}
 		}
 	}
 
 	if (type == AllAllowed)
-	{ 
+	{
 		vector<IntVec2> v2;
-		IntVec2 king;
-		for (int x = 0; x < state.gmap.w; ++x)
-		{
-			for (int y = 0; y < state.gmap.h; ++y)
-			{
-				if (state.gmap[x][y] == King && state.omap[x][y] == state.HamI)
-				{
-					king = IntVec2(x, y);
-				}
-			}
-		}
+		IntVec2 king = state.findKing(state.HamI);
 
 		state.changeP();
-		
+
 		for (auto p2 : v)
 		{
 			auto Ifking = p == king ? p2 : king;
@@ -361,7 +365,7 @@ vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 			state.gmap[p] = None;
 			state.omap[p] = Neutral;
 
-			if (free(state, Ifking))
+			if (!isAttacking(state, Ifking))
 			{
 				v2.push_back(p2);
 			}
@@ -375,9 +379,9 @@ vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 		return v2;
 	}
 	return v;
-}										//Сделано движение фигур. Должно работать...
+}
 
-bool free(State& state, IntVec2 v)
+bool isAttacking(State& state, IntVec2 v)
 {
 	int x, y;
 	vector<IntVec2> n;
@@ -392,51 +396,42 @@ bool free(State& state, IntVec2 v)
 				{
 					if (v == f)
 					{
-						return false;
-					}
-				}
-			}
-		}
-	}
-	return true;
-}
-
-bool Ischeck(State& state, IntVec2 v)
-{
-	vector<IntVec2> c;
-	vector<IntVec2> v2;
-	IntVec2 king;
-	for (int x = 0; x < state.gmap.w; ++x)
-	{
-		for (int y = 0; y < state.gmap.h; ++y)
-		{
-			if (state.gmap[x][y] == King && state.omap[x][y] == state.HamI)
-			{
-				king = IntVec2(x, y);
-			}
-		}
-	}
-
-	for (int x = 0; x < state.gmap.w; ++x)
-	{
-		for (int y = 0; y < state.gmap.h; ++y)
-		{
-			if (state.omap[x][y] == !state.HamI)
-			{
-				c = movePawn(state, IntVec2(x, y), Hits);
-				for (auto f : c)
-				{
-					if (f == king)
-					{
-						state.Check = true;
 						return true;
 					}
 				}
 			}
 		}
 	}
-	state.Check = false;
 	return false;
+}
+
+bool Ischeck(State& state)
+{
+	IntVec2 king = state.findKing(state.HamI);
+	state.changeP();
+	auto result = isAttacking(state, king);
+	state.changeP();
+	return result;
+}
+
+bool Isstalemate(State& state)
+{
+	int canMove = 0;
+	vector<IntVec2> c;
+
+	for (int x = 0; x < 8; ++x)
+	{
+		for (int y = 0; y <= 7; ++y)
+		{
+			if (state.omap[x][y] == state.HamI)
+			{
+				c = movePawn(state, IntVec2(x, y), AllAllowed);
+				if (c.size() > 0)
+					canMove++;
+			}
+		}
+	}
+	return canMove == 0;
 }
 
 class MyApp : public App
@@ -476,8 +471,8 @@ class MyApp : public App
 			}
 		}   
 
-		state.gmap = loadMap("pole.png", colorToType);
-		state.omap = loadMap("owner.png", colorToOwner);
+		state.gmap = loadMap("pole1.png", colorToType);
+		state.omap = loadMap("owner1.png", colorToOwner);
 
 	
 		for (int x = 0; x < state.gmap.w; ++x)
@@ -537,6 +532,7 @@ class MyApp : public App
 		black.hide();
 		check.hide();
 		checkmate.hide();
+		stalemate.hide();
 	}
 	
 	IntVec2 cell(Vec2 v)
@@ -549,10 +545,10 @@ class MyApp : public App
 	
 	void process(Input input)
 	{
-		if (state.Check) check.show();
+		/*if (state.Check) check.show();
 		else check.hide();
 		if (state.Checkmate) checkmate.show();
-		else checkmate.hide();
+		else checkmate.hide();*/
 
 		auto p = field.mousePos();
 		using namespace gamebase::InputKey;
@@ -659,18 +655,41 @@ class MyApp : public App
 
 					state.changeP();
 					if (state.HamI == Black)
-					{	black.show();
-						white.hide();}
+					{
+						black.show();
+						white.hide();
+					}
 					else
-					{	white.show();
-						black.hide();}
+					{
+						white.show();
+						black.hide();
+					}
 
-					Ischeck(state, g2);
-					if (state.Check) check.show();
-					else check.hide();
-					if (state.Checkmate) checkmate.show();
-					else checkmate.hide();
+					auto ischeck = Ischeck(state);
+					auto isstalemate = Isstalemate(state);
 
+					checkmate.hide();
+					stalemate.hide();
+					check.hide();
+
+					if (ischeck)
+					{
+						if (isstalemate)
+						{
+							checkmate.show();
+						}
+						else
+						{
+							check.show();
+						}
+					}
+					else
+					{
+						if (isstalemate)
+							stalemate.show();
+					}
+
+				
 					lights.clear();
 					tPos.clear();
 				}
@@ -693,6 +712,7 @@ class MyApp : public App
 	FromDesign(Label, white);
 	FromDesign(Label, check);
 	FromDesign(Label, checkmate);
+	FromDesign(Label, stalemate);
 	IntVec2 g1;
 	IntVec2 g2;
 	IntVec2 vp;
