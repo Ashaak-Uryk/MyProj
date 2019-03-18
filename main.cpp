@@ -25,6 +25,7 @@ struct State
 {
 	GameMap gmap;
 	GameMap omap;
+	GameMap forpawn;
 	vector<IntVec2> walkTB;
 	vector<IntVec2> walkTW;
 	bool kingW = true;
@@ -438,7 +439,6 @@ class MyApp : public App
 {
 	void load()
 	{
-
 		map<Color, int> colorToType = {
 		{ Color(255, 255, 255), None },
 		{ Color(255, 0, 0), Pawn },
@@ -452,7 +452,7 @@ class MyApp : public App
 		map<Color, int> colorToOwner = {
 		{ Color(255, 255, 255), White },
 		{ Color(150, 150, 150), Neutral },
-		{ Color(0, 0, 0), Black }	
+		{ Color(0, 0, 0), Black }
 		};
 
 		for (int y = 0; y < 8; y++)
@@ -469,12 +469,21 @@ class MyApp : public App
 					square.skin<FilledRect>().setColor(250, 233, 209);
 				}
 			}
-		}   
+		}
 
-		state.gmap = loadMap("pole1.png", colorToType);
-		state.omap = loadMap("owner1.png", colorToOwner);
-
+		state.gmap = loadMap("pole.png", colorToType);
+		state.omap = loadMap("owner.png", colorToOwner);
+		state.forpawn = loadMap("forpawn.png", colorToType);
+		connect(ButRest, Rest);
+		ButRest.setPos(0,-270);
+		Rest();	
+	}
 	
+	void Rest()
+	{
+		
+
+
 		for (int x = 0; x < state.gmap.w; ++x)
 		{
 			for (int y = 0; y < state.gmap.h; ++y)
@@ -482,14 +491,14 @@ class MyApp : public App
 				if (state.gmap[x][y] == Pawn)
 				{
 					auto pawn = figures.load("Pawn.json", 50 * x, 50 * y);
-						if (state.omap[x][y] == Black)
+					if (state.omap[x][y] == Black)
 						pawn.skin<Texture>().setColor(0, 0, 0);
 				}
 
 				if (state.gmap[x][y] == Rook)
 				{
 					auto rook = figures.load("Rook.json", 50 * x, 50 * y);
-						if (state.omap[x][y] == Black)
+					if (state.omap[x][y] == Black)
 						rook.skin<Texture>().setColor(0, 0, 0);
 
 				}
@@ -497,35 +506,35 @@ class MyApp : public App
 				if (state.gmap[x][y] == Bishop)
 				{
 					auto bishop = figures.load("Bishop.json", 50 * x, 50 * y);
-						if (state.omap[x][y] == Black)
+					if (state.omap[x][y] == Black)
 						bishop.skin<Texture>().setColor(0, 0, 0);
-					
+
 				}
 
 				if (state.gmap[x][y] == Knight)
 				{
 					auto knight = figures.load("Knight.json", 50 * x, 50 * y);
-						if (state.omap[x][y] == Black)
+					if (state.omap[x][y] == Black)
 						knight.skin<Texture>().setColor(0, 0, 0);
-					
+
 				}
 
 				if (state.gmap[x][y] == King)
 				{
 					auto king = figures.load("King.json", 50 * x, 50 * y);
-						if (state.omap[x][y] == Black)
+					if (state.omap[x][y] == Black)
 						king.skin<Texture>().setColor(0, 0, 0);
-					
+
 				}
 
 				if (state.gmap[x][y] == Queen)
 				{
 					auto queen = figures.load("Queen.json", 50 * x, 50 * y);
-						if (state.omap[x][y] == Black)
+					if (state.omap[x][y] == Black)
 						queen.skin<Texture>().setColor(0, 0, 0);
-					
+
 				}
-			
+
 			}
 		}
 		field.setView(400 / 2 - 50 / 2, 400 / 2 - 50 / 2);
@@ -533,14 +542,55 @@ class MyApp : public App
 		check.hide();
 		checkmate.hide();
 		stalemate.hide();
+		ButRook.setPos(260, 155);  ButRook.hide();   //connect(ButRook, Butrook);
+		ButBishop.setPos(260, 80); ButBishop.hide(); //connect(ButBishop, Butbishop);
+		ButKnight.setPos(260, 5);  ButKnight.hide(); //connect(ButKnight, Butknight);
+		ButQueen.setPos(260, -70); ButQueen.hide();  //connect(ButQueen, Butqueen);
+		ButPawn.setPos(260, -145); ButPawn.hide();   //connect(ButPawn, Butpawn);
 	}
-	
+
 	IntVec2 cell(Vec2 v)
 	{
 		v.x += 25;
 		v.y += 25;
 		v /=  50;
 		return IntVec2(v.x , v.y);
+	}
+
+	void Butrook(IntVec2 p)
+	{
+		state.gmap[p] = Rook;
+		auto rook = figures.load("Rook.json", 50 * p.x, 50 * p.y);
+		if (state.omap[p] == Black)
+			rook.skin<Texture>().setColor(0, 0, 0);
+	}
+	void Butbishop(IntVec2 p)
+	{
+		state.gmap[p] = Bishop;
+		auto bishop = figures.load("Bishop.json", 50 * p.x, 50 * p.y);
+		if (state.omap[p] == Black)
+			bishop.skin<Texture>().setColor(0, 0, 0);
+	}
+	void Butknight(IntVec2 p)
+	{
+		state.gmap[p] = Knight;
+		auto knight = figures.load("Knight.json", 50 * p.x, 50 * p.y);
+		if (state.omap[p] == Black)
+			knight.skin<Texture>().setColor(0, 0, 0);
+	}
+	void Butqueen(IntVec2 p)
+	{
+		state.gmap[p] = Queen;
+		auto queen = figures.load("Queen.json", 50 * p.x, 50 * p.y);
+		if (state.omap[p] == Black)
+			queen.skin<Texture>().setColor(0, 0, 0);
+	}
+	void Butpawn(IntVec2 p)
+	{
+		state.gmap[p] = Pawn;
+		auto pawn = figures.load("Pawn.json", 50 * p.x, 50 * p.y);
+		if (state.omap[p] == Black)
+			pawn.skin<Texture>().setColor(0, 0, 0);
 	}
 	
 	void process(Input input)
@@ -570,6 +620,11 @@ class MyApp : public App
 					light.skin<Texture>().setColor(0, 75, 255, 100);
 				}
 			}
+			ButRook.hide();
+			ButBishop.hide();
+			ButKnight.hide();
+			ButQueen.hide();
+			ButPawn.hide();
 		}
 		if (input.justPressed(MouseRight))
 		{
@@ -601,6 +656,23 @@ class MyApp : public App
 						}
 					}
 
+					if (state.gmap[g1] == Pawn && (g2.y == 0|| g2.y == 7))
+					{
+						ButRook.show(); 
+						ButBishop.show(); 
+						ButKnight.show();
+						ButQueen.show();
+						ButPawn.show();
+
+						connect(ButRook, Butrook, g2);
+						connect(ButBishop, Butbishop, g2);
+						connect(ButKnight, Butknight, g2);
+						connect(ButQueen, Butqueen, g2);
+						connect(ButPawn, Butpawn, g2);
+
+						
+					}
+						
 
 					if (state.omap[g2] == enemy)
 						for (auto i : figures.find(g2.x * 50, g2.y * 50))
@@ -671,6 +743,7 @@ class MyApp : public App
 					checkmate.hide();
 					stalemate.hide();
 					check.hide();
+						
 
 					if (ischeck)
 					{
@@ -713,6 +786,12 @@ class MyApp : public App
 	FromDesign(Label, check);
 	FromDesign(Label, checkmate);
 	FromDesign(Label, stalemate);
+	FromDesign(Button, ButRook);
+	FromDesign(Button, ButBishop);
+	FromDesign(Button, ButKnight);
+	FromDesign(Button, ButQueen);
+	FromDesign(Button, ButPawn);
+	FromDesign(Button, ButRest);
 	IntVec2 g1;
 	IntVec2 g2;
 	IntVec2 vp;

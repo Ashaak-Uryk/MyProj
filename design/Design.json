@@ -304,6 +304,246 @@
                "text" : "White"
             },
             {
+               "_name" : "ButPawn",
+               "_typeName" : "Button",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               },
+               "skin" : {
+                  "_typeName" : "SimpleRectangleButtonSkin",
+                  "borderColor" : [ 1, 1, 1, 1 ],
+                  "borderWidth" : 1,
+                  "box" : {
+                     "_typeName" : "PixelBox",
+                     "height" : 48,
+                     "width" : 100
+                  },
+                  "fillColor" : [ 0, 0, 0, 1 ],
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Roboto",
+                     "outlineWidth" : 1,
+                     "size" : 28
+                  },
+                  "text" : "Pawn",
+                  "textColor" : [ 1, 1, 1, 1 ],
+                  "textOutlineColor" : [ 1, 1, 1, 1 ],
+                  "useGradient" : false
+               }
+            },
+            {
+               "_name" : "ButQueen",
+               "_typeName" : "Button",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               },
+               "skin" : {
+                  "_typeName" : "SimpleRectangleButtonSkin",
+                  "borderColor" : [ 1, 1, 1, 1 ],
+                  "borderWidth" : 1,
+                  "box" : {
+                     "_typeName" : "PixelBox",
+                     "height" : 48,
+                     "width" : 100
+                  },
+                  "fillColor" : [ 0, 0, 0, 1 ],
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Roboto",
+                     "outlineWidth" : 1,
+                     "size" : 28
+                  },
+                  "text" : "Queen",
+                  "textColor" : [ 1, 1, 1, 1 ],
+                  "textOutlineColor" : [ 1, 1, 1, 1 ],
+                  "useGradient" : false
+               }
+            },
+            {
+               "_name" : "ButBishop",
+               "_typeName" : "Button",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               },
+               "skin" : {
+                  "_typeName" : "SimpleRectangleButtonSkin",
+                  "borderColor" : [ 1, 1, 1, 1 ],
+                  "borderWidth" : 1,
+                  "box" : {
+                     "_typeName" : "PixelBox",
+                     "height" : 48,
+                     "width" : 100
+                  },
+                  "fillColor" : [ 0, 0, 0, 1 ],
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Roboto",
+                     "outlineWidth" : 1,
+                     "size" : 28
+                  },
+                  "text" : "Bishop",
+                  "textColor" : [ 1, 1, 1, 1 ],
+                  "textOutlineColor" : [ 1, 1, 1, 1 ],
+                  "useGradient" : false
+               }
+            },
+            {
+               "_name" : "ButKnight",
+               "_typeName" : "Button",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               },
+               "skin" : {
+                  "_typeName" : "SimpleRectangleButtonSkin",
+                  "borderColor" : [ 1, 1, 1, 1 ],
+                  "borderWidth" : 1,
+                  "box" : {
+                     "_typeName" : "PixelBox",
+                     "height" : 48,
+                     "width" : 100
+                  },
+                  "fillColor" : [ 0, 0, 0, 1 ],
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Roboto",
+                     "outlineWidth" : 1,
+                     "size" : 28
+                  },
+                  "text" : "Knight",
+                  "textColor" : [ 1, 1, 1, 1 ],
+                  "textOutlineColor" : [ 1, 1, 1, 1 ],
+                  "useGradient" : false
+               }
+            },
+            {
+               "_name" : "ButRook",
+               "_typeName" : "Button",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               },
+               "skin" : {
+                  "_typeName" : "SimpleRectangleButtonSkin",
+                  "borderColor" : [ 1, 1, 1, 1 ],
+                  "borderWidth" : 1,
+                  "box" : {
+                     "_typeName" : "PixelBox",
+                     "height" : 48,
+                     "width" : 100
+                  },
+                  "fillColor" : [ 0, 0, 0, 1 ],
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Roboto",
+                     "outlineWidth" : 1,
+                     "size" : 28
+                  },
+                  "text" : "Rook",
+                  "textColor" : [ 1, 1, 1, 1 ],
+                  "textOutlineColor" : [ 1, 1, 1, 1 ],
+                  "useGradient" : false
+               }
+            },
+            {
+               "_name" : "ButRest",
+               "_typeName" : "Button",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               },
+               "skin" : {
+                  "_typeName" : "SimpleRectangleButtonSkin",
+                  "borderColor" : [ 1, 1, 1, 1 ],
+                  "borderWidth" : 1,
+                  "box" : {
+                     "_typeName" : "PixelBox",
+                     "height" : 48,
+                     "width" : 100
+                  },
+                  "fillColor" : [ 0, 0, 0, 1 ],
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Roboto",
+                     "outlineWidth" : 1,
+                     "size" : 28
+                  },
+                  "text" : "Restart",
+                  "textColor" : [ 1, 1, 1, 1 ],
+                  "textOutlineColor" : [ 1, 1, 1, 1 ],
+                  "useGradient" : false
+               }
+            },
+            {
                "_name" : "field",
                "_typeName" : "GameView",
                "box" : {
