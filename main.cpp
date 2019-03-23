@@ -21,11 +21,22 @@ enum Owner
 	Black
 };
 
+struct Compukter
+{
+	
+};
+
+struct Move
+{
+	IntVec2 From;
+	IntVec2 To;
+	float q;
+};
+
 struct State
 {
 	GameMap gmap;
 	GameMap omap;
-	GameMap forpawn;
 	vector<IntVec2> walkTB;
 	vector<IntVec2> walkTW;
 	bool kingW = true;
@@ -406,6 +417,7 @@ bool isAttacking(State& state, IntVec2 v)
 	return false;
 }
 
+
 bool Ischeck(State& state)
 {
 	IntVec2 king = state.findKing(state.HamI);
@@ -439,6 +451,16 @@ class MyApp : public App
 {
 	void load()
 	{
+		connect(ButRest, Rest);
+		ButRest.setPos(0,-270);
+		Rest();	
+	}
+	
+	void Rest()
+	{
+		randomize();
+		state.HamI = White;
+		figures.clear();
 		map<Color, int> colorToType = {
 		{ Color(255, 255, 255), None },
 		{ Color(255, 0, 0), Pawn },
@@ -470,19 +492,8 @@ class MyApp : public App
 				}
 			}
 		}
-
 		state.gmap = loadMap("pole.png", colorToType);
 		state.omap = loadMap("owner.png", colorToOwner);
-		state.forpawn = loadMap("forpawn.png", colorToType);
-		connect(ButRest, Rest);
-		ButRest.setPos(0,-270);
-		Rest();	
-	}
-	
-	void Rest()
-	{
-		
-
 
 		for (int x = 0; x < state.gmap.w; ++x)
 		{
@@ -593,13 +604,252 @@ class MyApp : public App
 			pawn.skin<Texture>().setColor(0, 0, 0);
 	}
 	
+	vector<Move> computermoves()
+	{
+		vector<IntVec2> c;
+		vector<Move> result;
+		for (int x = 0; x < 8; ++x)
+		{
+			for (int y = 0; y < 8; ++y)
+			{
+				if (state.omap[x][y] == state.HamI)
+				{
+					c = movePawn(state, IntVec2(x, y), AllAllowed);
+					for (auto i : c)
+					{
+						Move m;
+						m.From = IntVec2(x, y);
+						m.To = i;
+						m.q = analyze(m);
+						result.push_back(m);
+					}
+				}
+			}
+		}
+		return result;	
+	}
+
+	float analyze(Move m)
+	{
+		float step=0;
+		if (state.gmap[m.To] == Queen)
+			step += 100;
+		if (state.gmap[m.To] == Knight || state.gmap[m.To] == Bishop)
+			step += 50;
+		if (state.gmap[m.To] == Rook)
+			step += 75;
+		if (state.gmap[m.To] == Pawn)
+			step += 25;
+		if (state.gmap[m.To] == None)
+			step += 10;
+		auto prevFigure = state.gmap[m.To];
+		auto prevOwner = state.omap[m.To];
+		state.gmap[m.To] = state.gmap[m.From];
+		state.omap[m.To] = state.omap[m.From];
+		state.gmap[m.From] = None;
+		state.omap[m.From] = Neutral;
+		state.changeP();
+		if (Ischeck(state))
+			step += 1000;
+
+		if(Ischeck(state) && ! Isstalemate(state))
+			step += 1000000;
+		state.changeP();
+		state.gmap[m.From] = state.gmap[m.To];
+		state.omap[m.From] = state.omap[m.To];
+		state.gmap[m.To] = prevFigure;
+		state.omap[m.To] = prevOwner;
+		return step + randomFloat(-0.001, 0.001);
+	}
+
+	void compmove()
+	{
+		auto moves = computermoves();
+		float q = 0;
+		Move m;
+		for (auto i : moves)
+		{
+			if (i.q > q)
+			{
+				q = i.q; 
+				m = i;
+			}
+		}
+		if (q == 0)
+			return;
+
+		makemove(m.From, m.To);
+	}
+
+	/*vector<IntVec2> moves(vector<IntVec2> c)
+	{
+		vector<IntVec2> n;
+		for(auto i: c)
+		{ 
+			for (int x = 0; x < 8; ++x)
+			{
+				for (int y = 0; y < 8; ++y)
+				{
+					if (state.omap[x][y] == state.HamI)
+					{
+						n = movePawn(state, IntVec2(x, y), AllAllowed);
+					}
+				}
+			}
+
+			auto prevFigure = state.gmap[i];
+			auto prevOwner = state.omap[i];
+			state.gmap[i] = state.gmap[];
+			state.omap[i] = state.omap[];
+			state.gmap[] = None;
+			state.omap[] = Neutral;
+
+				//v2.push_back(i);
+
+			state.gmap[] = state.gmap[i];
+			state.omap[] = state.omap[i];
+			state.gmap[i] = prevFigure;
+			state.omap[i] = prevOwner;
+		}
+		state.changeP();
+	}*/
+
+	void makemove(IntVec2 from, IntVec2 to)
+	{
+		auto isWhite = state.HamI == White;
+		auto enemy = isWhite ? Black : White;
+		auto& mywalk = isWhite ? state.walkTW : state.walkTB;
+		auto& enemywalk = isWhite ? state.walkTB : state.walkTW;
+		if (state.gmap[from] == Pawn)
+		{
+			int dir = isWhite ? 1 : -1;
+			if (from.y == to.y - 2 * dir)
+				mywalk.emplace_back(to.x, to.y - dir);
+
+			for (auto n : enemywalk)
+			{
+				if (n == to)
+				{
+					state.gmap[to.x][to.y - dir] = None;
+					state.omap[to.x][to.y - dir] = Neutral;
+					for (auto i : figures.find(to.x * 50, (to.y - dir) * 50))
+						i.kill();
+				}
+			}
+		}
+
+		if (state.gmap[from] == Pawn && (to.y == 0 || to.y == 7))
+		{
+			ButRook.show();
+			ButBishop.show();
+			ButKnight.show();
+			ButQueen.show();
+			ButPawn.show();
+
+			connect(ButRook, Butrook, to);
+			connect(ButBishop, Butbishop, to);
+			connect(ButKnight, Butknight, to);
+			connect(ButQueen, Butqueen, to);
+			connect(ButPawn, Butpawn, to);
+
+		}
+
+
+		if (state.omap[to] == enemy)
+			for (auto i : figures.find(to.x * 50, to.y * 50))
+				i.kill();
+		enemywalk.clear();
+
+		figures.find(from.x * 50, from.y * 50).back().setPos(to.x * 50, to.y * 50);
+		state.gmap[to] = state.gmap[from];
+		state.omap[to] = state.HamI;
+		auto& king = state.HamI == White ? state.kingW : state.kingB;
+		auto& rook = state.HamI == White ? state.rookW : state.rookB;
+		if (state.gmap[from] == Rook)
+		{
+			if (to.x > 4)
+			{
+				rook[1] = false;
+			}
+			else
+			{
+				rook[0] = false;
+			}
+		}
+		if (state.gmap[from] == King && !(from.x + 2 == to.x || from.x - 2 == to.x))
+		{
+			king = false;
+		}
+		if ((from.x + 2 == to.x || from.x - 2 == to.x) && state.gmap[from] == King)
+		{
+			king = false;
+			figures.find(from.x * 50, from.y * 50).back().setPos(to.x * 50, to.y * 50);
+			if (to.x > 4)
+			{
+				figures.find((from.x + 4) * 50, from.y * 50).back().setPos((from.x + 1) * 50, from.y * 50);
+				rook[1] = false;
+				state.gmap[from.x + 1][from.y] = Rook;
+				state.omap[from.x + 1][from.y] = state.HamI;
+				state.gmap[from.x + 4][from.y] = None;
+				state.omap[from.x + 4][from.y] = Neutral;
+			}
+			else
+			{
+				figures.find((from.x - 3) * 50, from.y * 50).back().setPos((from.x - 1) * 50, from.y * 50);
+				rook[0] = false;
+				state.gmap[from.x - 1][from.y] = Rook;
+				state.omap[from.x - 1][from.y] = state.HamI;
+				state.gmap[from.x - 3][from.y] = None;
+				state.omap[from.x - 3][from.y] = Neutral;
+			}
+		}
+		state.gmap[from] = None;
+		state.omap[from] = Neutral;
+
+		state.changeP();
+		if (state.HamI == Black)
+		{
+			black.show();
+			white.hide();
+		}
+		else
+		{
+			white.show();
+			black.hide();
+		}
+
+		auto ischeck = Ischeck(state);
+		auto isstalemate = Isstalemate(state);
+
+		checkmate.hide();
+		stalemate.hide();
+		check.hide();
+
+
+		if (ischeck)
+		{
+			if (isstalemate)
+			{
+				checkmate.show();
+			}
+			else
+			{
+				check.show();
+			}
+		}
+		else
+		{
+			if (isstalemate)
+				stalemate.show();
+		}
+
+		lights.clear();
+		tPos.clear();
+		figures.update();
+	}
+
 	void process(Input input)
 	{
-		/*if (state.Check) check.show();
-		else check.hide();
-		if (state.Checkmate) checkmate.show();
-		else checkmate.hide();*/
-
 		auto p = field.mousePos();
 		using namespace gamebase::InputKey;
 		//auto WmyO = state.HamI == White ? Black : White;
@@ -633,141 +883,10 @@ class MyApp : public App
 			{
 				if (g2 == v)
 				{
-					auto isWhite = state.HamI == White;
-					auto enemy = isWhite ? Black : White;
-					auto& mywalk = isWhite ? state.walkTW : state.walkTB;
-					auto& enemywalk = isWhite ? state.walkTB : state.walkTW;
-					if (state.gmap[g1] == Pawn)
-					{
-						int dir = isWhite ? 1 : -1;
-						if (g1.y == g2.y - 2*dir)
-							mywalk.emplace_back(g2.x, g2.y - dir);
-
-						for (auto n : enemywalk)
-						{
-							if (n == g2)
-							{
-								state.gmap[g2.x][g2.y - dir] = None;
-								state.omap[g2.x][g2.y - dir] = Neutral;
-								for (auto i : figures.find(g2.x * 50, (g2.y-dir) * 50))
-									i.kill();
-							}
-
-						}
-					}
-
-					if (state.gmap[g1] == Pawn && (g2.y == 0|| g2.y == 7))
-					{
-						ButRook.show(); 
-						ButBishop.show(); 
-						ButKnight.show();
-						ButQueen.show();
-						ButPawn.show();
-
-						connect(ButRook, Butrook, g2);
-						connect(ButBishop, Butbishop, g2);
-						connect(ButKnight, Butknight, g2);
-						connect(ButQueen, Butqueen, g2);
-						connect(ButPawn, Butpawn, g2);
-
-						
-					}
-						
-
-					if (state.omap[g2] == enemy)
-						for (auto i : figures.find(g2.x * 50, g2.y * 50))
-							i.kill();
-					enemywalk.clear();
-
-					figures.find(g1.x * 50, g1.y * 50).back().setPos(g2.x * 50, g2.y * 50);
-					state.gmap[g2] = state.gmap[g1];
-					state.omap[g2] = state.HamI;
-					auto& king = state.HamI == White ? state.kingW : state.kingB;
-					auto& rook = state.HamI == White ? state.rookW : state.rookB;
-					if (state.gmap[g1] == Rook)
-					{
-						if (g2.x > 4)
-						{
-							rook[1] = false;
-						}
-						else
-						{
-							rook[0] = false;
-						}
-					}
-					if (state.gmap[g1] == King && !(g1.x + 2 == g2.x || g1.x - 2 == g2.x))   
-					{
-						king = false;
-					}
-					if ((g1.x + 2 == g2.x || g1.x - 2 == g2.x) && state.gmap[g1] == King)
-					{
-						king = false;
-						figures.find(g1.x * 50, g1.y * 50).back().setPos(g2.x * 50, g2.y * 50);
-						if (g2.x > 4)
-						{
-							figures.find((g1.x + 4) * 50, g1.y * 50).back().setPos((g1.x + 1) * 50, g1.y * 50);
-							rook[1] = false;
-							state.gmap[g1.x + 1][g1.y] = Rook;
-							state.omap[g1.x + 1][g1.y] = state.HamI;
-							state.gmap[g1.x + 4][g1.y] = None;
-							state.omap[g1.x + 4][g1.y] = Neutral;
-						}
-						else
-						{ 
-							figures.find((g1.x - 3) * 50, g1.y * 50).back().setPos((g1.x - 1) * 50, g1.y * 50);
-							rook[0] = false;
-							state.gmap[g1.x - 1][g1.y] = Rook;
-							state.omap[g1.x - 1][g1.y] = state.HamI;
-							state.gmap[g1.x - 3][g1.y] = None;
-							state.omap[g1.x - 3][g1.y] = Neutral;
-						}
-					}
-						state.gmap[g1] = None;
-						state.omap[g1] = Neutral;
-
-					state.changeP();
-					if (state.HamI == Black)
-					{
-						black.show();
-						white.hide();
-					}
-					else
-					{
-						white.show();
-						black.hide();
-					}
-
-					auto ischeck = Ischeck(state);
-					auto isstalemate = Isstalemate(state);
-
-					checkmate.hide();
-					stalemate.hide();
-					check.hide();
-						
-
-					if (ischeck)
-					{
-						if (isstalemate)
-						{
-							checkmate.show();
-						}
-						else
-						{
-							check.show();
-						}
-					}
-					else
-					{
-						if (isstalemate)
-							stalemate.show();
-					}
-
-				
-					lights.clear();
-					tPos.clear();
+					makemove(g1, g2);
+					compmove();
 				}
 			}
-
 		}
     }
 
