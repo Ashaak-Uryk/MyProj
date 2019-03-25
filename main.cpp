@@ -558,6 +558,7 @@ class MyApp : public App
 		ButKnight.setPos(260, 5);  ButKnight.hide(); //connect(ButKnight, Butknight);
 		ButQueen.setPos(260, -70); ButQueen.hide();  //connect(ButQueen, Butqueen);
 		ButPawn.setPos(260, -145); ButPawn.hide();   //connect(ButPawn, Butpawn);
+		ButRest.setPos(0, -300); ButPawn.hide();   //connect(ButPawn, Butpawn);
 	}
 
 	IntVec2 cell(Vec2 v)
@@ -570,6 +571,8 @@ class MyApp : public App
 
 	void Butrook(IntVec2 p)
 	{
+		for (auto i : figures.find(p.x * 50, p.y * 50))
+			i.kill();
 		state.gmap[p] = Rook;
 		auto rook = figures.load("Rook.json", 50 * p.x, 50 * p.y);
 		if (state.omap[p] == Black)
@@ -577,6 +580,8 @@ class MyApp : public App
 	}
 	void Butbishop(IntVec2 p)
 	{
+		for (auto i : figures.find(p.x * 50, p.y * 50))
+			i.kill();
 		state.gmap[p] = Bishop;
 		auto bishop = figures.load("Bishop.json", 50 * p.x, 50 * p.y);
 		if (state.omap[p] == Black)
@@ -584,6 +589,8 @@ class MyApp : public App
 	}
 	void Butknight(IntVec2 p)
 	{
+		for (auto i : figures.find(p.x * 50, p.y * 50))
+			i.kill();
 		state.gmap[p] = Knight;
 		auto knight = figures.load("Knight.json", 50 * p.x, 50 * p.y);
 		if (state.omap[p] == Black)
@@ -591,13 +598,17 @@ class MyApp : public App
 	}
 	void Butqueen(IntVec2 p)
 	{
+		for (auto i : figures.find(p.x * 50, p.y * 50))
+			i.kill();
 		state.gmap[p] = Queen;
 		auto queen = figures.load("Queen.json", 50 * p.x, 50 * p.y);
-		if (state.omap[p] == Black)
+		if (state.omap[p] == Black)  
 			queen.skin<Texture>().setColor(0, 0, 0);
 	}
 	void Butpawn(IntVec2 p)
 	{
+		for (auto i : figures.find(p.x * 50, p.y * 50))
+			i.kill();
 		state.gmap[p] = Pawn;
 		auto pawn = figures.load("Pawn.json", 50 * p.x, 50 * p.y);
 		if (state.omap[p] == Black)
@@ -660,6 +671,19 @@ class MyApp : public App
 		state.gmap[m.To] = prevFigure;
 		state.omap[m.To] = prevOwner;
 		return step + randomFloat(-0.001, 0.001);
+
+		if (state.gmap[m.From] == King)
+			step += 5;
+		if (state.gmap[m.From] == Knight)
+			step += 20;
+		if (state.gmap[m.From] == Rook)
+			step += 20;
+		if (state.gmap[m.From] == Bishop)
+			step += 20;
+		if (state.gmap[m.From] == Queen)
+			step += 25;
+		if (state.gmap[m.From] == Pawn)
+			step += 15;
 	}
 
 	void compmove()
@@ -693,25 +717,31 @@ class MyApp : public App
 					if (state.omap[x][y] == state.HamI)
 					{
 						n = movePawn(state, IntVec2(x, y), AllAllowed);
+
+						for (auto j : n)
+						{
+							auto prevFigure = state.gmap[p2];
+							auto prevOwner = state.omap[p2];
+							state.gmap[p2] = state.gmap[p];
+							state.omap[p2] = state.omap[p];
+							state.gmap[p] = None;
+							state.omap[p] = Neutral;
+
+							if (!isAttacking(state, Ifking))
+							{
+								v2.push_back(p2);
+							}
+
+							state.gmap[p] = state.gmap[p2];
+							state.omap[p] = state.omap[p2];
+							state.gmap[p2] = prevFigure;
+							state.omap[p2] = prevOwner;
+						}
+
 					}
 				}
 			}
-
-			auto prevFigure = state.gmap[i];
-			auto prevOwner = state.omap[i];
-			state.gmap[i] = state.gmap[];
-			state.omap[i] = state.omap[];
-			state.gmap[] = None;
-			state.omap[] = Neutral;
-
-				//v2.push_back(i);
-
-			state.gmap[] = state.gmap[i];
-			state.omap[] = state.omap[i];
-			state.gmap[i] = prevFigure;
-			state.omap[i] = prevOwner;
 		}
-		state.changeP();
 	}*/
 
 	void makemove(IntVec2 from, IntVec2 to)
@@ -738,6 +768,7 @@ class MyApp : public App
 			}
 		}
 
+		bool isCompUpgradePawn = false;
 		if (state.gmap[from] == Pawn && (to.y == 0 || to.y == 7))
 		{
 			ButRook.show();
@@ -752,6 +783,8 @@ class MyApp : public App
 			connect(ButQueen, Butqueen, to);
 			connect(ButPawn, Butpawn, to);
 
+			if (state.HamI == Black)
+				isCompUpgradePawn = true;
 		}
 
 
@@ -846,6 +879,13 @@ class MyApp : public App
 		lights.clear();
 		tPos.clear();
 		figures.update();
+
+		if (isCompUpgradePawn)
+		{
+			state.changeP();
+			Butqueen(to);
+			state.changeP();
+		}
 	}
 
 	void process(Input input)
@@ -884,10 +924,10 @@ class MyApp : public App
 				if (g2 == v)
 				{
 					makemove(g1, g2);
-					compmove();
+					
 				}
 			}
-		}
+		}compmove();
     }
 
     void move()
