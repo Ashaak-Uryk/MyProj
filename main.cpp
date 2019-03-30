@@ -676,12 +676,10 @@ class MyApp : public App
 		}
 		return result;	
 	}
-	
+
 	float analyze(Move m)
 	{
-			
-		
-
+		 
 		float step=0;
 		if (state.gmap[m.To] == Queen)
 			step += 100;
