@@ -357,6 +357,41 @@ vector<IntVec2> movePawn(State& state, IntVec2 p, MoveType type)
 					else break;
 			}
 		}
+		if (state.gmap[p] == King)
+		{
+			if (p.x + 1 <= 7 && state.isNE(p.x + 1, p.y))
+			{
+				v.emplace_back(p.x + 1, p.y);
+			}
+			if (p.x - 1 >= 0 && state.isNE(p.x - 1, p.y))
+			{
+				v.emplace_back(p.x - 1, p.y);
+			}
+			if (p.y + 1 <= 7 && state.isNE(p.x, p.y + 1))
+			{
+				v.emplace_back(p.x, p.y + 1);
+			}
+			if (p.y - 1 >= 0 && state.isNE(p.x, p.y - 1))
+			{
+				v.emplace_back(p.x, p.y - 1);
+			}
+			if (p.x + 1 <= 7 && p.y + 1 <= 7 && state.isNE(p.x + 1, p.y + 1))
+			{
+				v.emplace_back(p.x + 1, p.y + 1);
+			}
+			if (p.x + 1 <= 7 && p.y - 1 >= 0 && state.isNE(p.x + 1, p.y - 1))
+			{
+				v.emplace_back(p.x + 1, p.y - 1);
+			}
+			if (p.x - 1 >= 0 && p.y + 1 <= 7 && state.isNE(p.x - 1, p.y + 1))
+			{
+				v.emplace_back(p.x - 1, p.y + 1);
+			}
+			if (p.x - 1 >= 0 && p.x - 1 >= 0 && state.isNE(p.x - 1, p.y - 1))
+			{
+				v.emplace_back(p.x - 1, p.y - 1);
+			}
+		}
 	}
 
 	if (type == AllAllowed)
@@ -614,6 +649,8 @@ class MyApp : public App
 		if (state.omap[p] == Black)
 			pawn.skin<Texture>().setColor(0, 0, 0);
 	}
+
+	
 	
 	vector<Move> computermoves()
 	{
@@ -639,9 +676,12 @@ class MyApp : public App
 		}
 		return result;	
 	}
-
+	
 	float analyze(Move m)
 	{
+			
+		
+
 		float step=0;
 		if (state.gmap[m.To] == Queen)
 			step += 100;
@@ -795,6 +835,7 @@ class MyApp : public App
 
 		figures.find(from.x * 50, from.y * 50).back().setPos(to.x * 50, to.y * 50);
 		state.gmap[to] = state.gmap[from];
+
 		state.omap[to] = state.HamI;
 		auto& king = state.HamI == White ? state.kingW : state.kingB;
 		auto& rook = state.HamI == White ? state.rookW : state.rookB;
@@ -924,10 +965,11 @@ class MyApp : public App
 				if (g2 == v)
 				{
 					makemove(g1, g2);
-					
+					compmove();
+					break;
 				}
 			}
-		}compmove();
+		}
     }
 
     void move()
