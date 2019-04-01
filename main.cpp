@@ -465,6 +465,7 @@ bool Ischeck(State& state)
 bool Isstalemate(State& state)
 {
 	int canMove = 0;
+	int isOnlyKing = 0;
 	vector<IntVec2> c;
 
 	for (int x = 0; x < 8; ++x)
@@ -477,8 +478,15 @@ bool Isstalemate(State& state)
 				if (c.size() > 0)
 					canMove++;
 			}
+
+			if (state.gmap[x][y] != None)
+				isOnlyKing++;
+
+			
 		}
 	}
+	if (isOnlyKing == 2)
+		canMove = 0;
 	return canMove == 0;
 }
 
@@ -677,9 +685,33 @@ class MyApp : public App
 		return result;	
 	}
 
-	float analyze(Move m)
+	//bool IsInDanger(State& state)
+	/*{
+		vector<IntVec2> c;
+		vector<IntVec2> n;
+		for (int x = 0; x < 8; ++x)
+		{
+			for (int y = 0; y <= 7; ++y)
+			{
+				if (state.omap[x][y] == state.HamI)
+				{
+					c = movePawn(state, IntVec2(x, y), AllAllowed);
+					
+					
+					for (int x1 = 0; x1 < 8; ++x1)
+					{
+						for (int y1 = 0; y1 <= 7; ++y1)
+						{
+
+						}
+					}
+				}
+			}
+		}
+	}*/
+
+	float analyzeOneStep(Move m)
 	{
-		 
 		float step=0;
 		if (state.gmap[m.To] == Queen)
 			step += 100;
@@ -699,9 +731,9 @@ class MyApp : public App
 		state.omap[m.From] = Neutral;
 		state.changeP();
 		if (Ischeck(state))
-			step += 1000;
+			step += 50;
 
-		if(Ischeck(state) && ! Isstalemate(state))
+		if(Ischeck(state) &&  Isstalemate(state))
 			step += 1000000;
 		state.changeP();
 		state.gmap[m.From] = state.gmap[m.To];
@@ -724,10 +756,50 @@ class MyApp : public App
 			step += 15;
 	}
 
+
+	float analyze(Move m)
+	{
+		float max = -10000000;
+		float MyStep;
+		MyStep = analyzeOneStep(m);
+		auto prevFigure = state.gmap[m.To];
+		auto prevOwner = state.omap[m.To];
+		state.gmap[m.To] = state.gmap[m.From];
+		state.omap[m.To] = state.omap[m.From];
+		state.gmap[m.From] = None;
+		state.omap[m.From] = Neutral;
+		state.changeP();
+		for (int x = 0; x < 8; ++x)
+		{
+			for (int y = 0; y < 8; ++y)
+			{
+				if (state.omap[x][y] == state.HamI)
+				{
+					auto c = movePawn(state, IntVec2(x, y), AllAllowed);
+					for (auto i : c)
+					{
+						Move n;
+						n.From = IntVec2(x, y);
+						n.To = i;
+						n.q = analyzeOneStep(n);
+						if (n.q > max)
+							max = n.q;
+					}
+				}
+			}
+		}
+		state.changeP();
+		state.gmap[m.From] = state.gmap[m.To];
+		state.omap[m.From] = state.omap[m.To];
+		state.gmap[m.To] = prevFigure;
+		state.omap[m.To] = prevOwner;
+		return MyStep - max;
+	}
+
 	void compmove()
 	{
 		auto moves = computermoves();
-		float q = 0;
+		float q = -100000000.0;
 		Move m;
 		for (auto i : moves)
 		{
@@ -737,9 +809,8 @@ class MyApp : public App
 				m = i;
 			}
 		}
-		if (q == 0)
+		if (q < -10000000.0)
 			return;
-
 		makemove(m.From, m.To);
 	}
 
@@ -784,146 +855,149 @@ class MyApp : public App
 
 	void makemove(IntVec2 from, IntVec2 to)
 	{
-		auto isWhite = state.HamI == White;
-		auto enemy = isWhite ? Black : White;
-		auto& mywalk = isWhite ? state.walkTW : state.walkTB;
-		auto& enemywalk = isWhite ? state.walkTB : state.walkTW;
-		if (state.gmap[from] == Pawn)
+		if (!Isstalemate(state))
 		{
-			int dir = isWhite ? 1 : -1;
-			if (from.y == to.y - 2 * dir)
-				mywalk.emplace_back(to.x, to.y - dir);
-
-			for (auto n : enemywalk)
+			auto isWhite = state.HamI == White;
+			auto enemy = isWhite ? Black : White;
+			auto& mywalk = isWhite ? state.walkTW : state.walkTB;
+			auto& enemywalk = isWhite ? state.walkTB : state.walkTW;
+			if (state.gmap[from] == Pawn)
 			{
-				if (n == to)
+				int dir = isWhite ? 1 : -1;
+				if (from.y == to.y - 2 * dir)
+					mywalk.emplace_back(to.x, to.y - dir);
+
+				for (auto n : enemywalk)
 				{
-					state.gmap[to.x][to.y - dir] = None;
-					state.omap[to.x][to.y - dir] = Neutral;
-					for (auto i : figures.find(to.x * 50, (to.y - dir) * 50))
-						i.kill();
+					if (n == to)
+					{
+						state.gmap[to.x][to.y - dir] = None;
+						state.omap[to.x][to.y - dir] = Neutral;
+						for (auto i : figures.find(to.x * 50, (to.y - dir) * 50))
+							i.kill();
+					}
 				}
 			}
-		}
 
-		bool isCompUpgradePawn = false;
-		if (state.gmap[from] == Pawn && (to.y == 0 || to.y == 7))
-		{
-			ButRook.show();
-			ButBishop.show();
-			ButKnight.show();
-			ButQueen.show();
-			ButPawn.show();
-
-			connect(ButRook, Butrook, to);
-			connect(ButBishop, Butbishop, to);
-			connect(ButKnight, Butknight, to);
-			connect(ButQueen, Butqueen, to);
-			connect(ButPawn, Butpawn, to);
-
-			if (state.HamI == Black)
-				isCompUpgradePawn = true;
-		}
-
-
-		if (state.omap[to] == enemy)
-			for (auto i : figures.find(to.x * 50, to.y * 50))
-				i.kill();
-		enemywalk.clear();
-
-		figures.find(from.x * 50, from.y * 50).back().setPos(to.x * 50, to.y * 50);
-		state.gmap[to] = state.gmap[from];
-
-		state.omap[to] = state.HamI;
-		auto& king = state.HamI == White ? state.kingW : state.kingB;
-		auto& rook = state.HamI == White ? state.rookW : state.rookB;
-		if (state.gmap[from] == Rook)
-		{
-			if (to.x > 4)
+			bool isCompUpgradePawn = false;
+			if (state.gmap[from] == Pawn && (to.y == 0 || to.y == 7))
 			{
-				rook[1] = false;
+				ButRook.show();
+				ButBishop.show();
+				ButKnight.show();
+				ButQueen.show();
+				ButPawn.show();
+
+				connect(ButRook, Butrook, to);
+				connect(ButBishop, Butbishop, to);
+				connect(ButKnight, Butknight, to);
+				connect(ButQueen, Butqueen, to);
+				connect(ButPawn, Butpawn, to);
+
+				if (state.HamI == Black)
+					isCompUpgradePawn = true;
 			}
-			else
-			{
-				rook[0] = false;
-			}
-		}
-		if (state.gmap[from] == King && !(from.x + 2 == to.x || from.x - 2 == to.x))
-		{
-			king = false;
-		}
-		if ((from.x + 2 == to.x || from.x - 2 == to.x) && state.gmap[from] == King)
-		{
-			king = false;
+
+
+			if (state.omap[to] == enemy)
+				for (auto i : figures.find(to.x * 50, to.y * 50))
+					i.kill();
+			enemywalk.clear();
+
 			figures.find(from.x * 50, from.y * 50).back().setPos(to.x * 50, to.y * 50);
-			if (to.x > 4)
+			state.gmap[to] = state.gmap[from];
+
+			state.omap[to] = state.HamI;
+			auto& king = state.HamI == White ? state.kingW : state.kingB;
+			auto& rook = state.HamI == White ? state.rookW : state.rookB;
+			if (state.gmap[from] == Rook)
 			{
-				figures.find((from.x + 4) * 50, from.y * 50).back().setPos((from.x + 1) * 50, from.y * 50);
-				rook[1] = false;
-				state.gmap[from.x + 1][from.y] = Rook;
-				state.omap[from.x + 1][from.y] = state.HamI;
-				state.gmap[from.x + 4][from.y] = None;
-				state.omap[from.x + 4][from.y] = Neutral;
+				if (to.x > 4)
+				{
+					rook[1] = false;
+				}
+				else
+				{
+					rook[0] = false;
+				}
+			}
+			if (state.gmap[from] == King && !(from.x + 2 == to.x || from.x - 2 == to.x))
+			{
+				king = false;
+			}
+			if ((from.x + 2 == to.x || from.x - 2 == to.x) && state.gmap[from] == King)
+			{
+				king = false;
+				figures.find(from.x * 50, from.y * 50).back().setPos(to.x * 50, to.y * 50);
+				if (to.x > 4)
+				{
+					figures.find((from.x + 4) * 50, from.y * 50).back().setPos((from.x + 1) * 50, from.y * 50);
+					rook[1] = false;
+					state.gmap[from.x + 1][from.y] = Rook;
+					state.omap[from.x + 1][from.y] = state.HamI;
+					state.gmap[from.x + 4][from.y] = None;
+					state.omap[from.x + 4][from.y] = Neutral;
+				}
+				else
+				{
+					figures.find((from.x - 3) * 50, from.y * 50).back().setPos((from.x - 1) * 50, from.y * 50);
+					rook[0] = false;
+					state.gmap[from.x - 1][from.y] = Rook;
+					state.omap[from.x - 1][from.y] = state.HamI;
+					state.gmap[from.x - 3][from.y] = None;
+					state.omap[from.x - 3][from.y] = Neutral;
+				}
+			}
+			state.gmap[from] = None;
+			state.omap[from] = Neutral;
+
+			state.changeP();
+			if (state.HamI == Black)
+			{
+				black.show();
+				white.hide();
 			}
 			else
 			{
-				figures.find((from.x - 3) * 50, from.y * 50).back().setPos((from.x - 1) * 50, from.y * 50);
-				rook[0] = false;
-				state.gmap[from.x - 1][from.y] = Rook;
-				state.omap[from.x - 1][from.y] = state.HamI;
-				state.gmap[from.x - 3][from.y] = None;
-				state.omap[from.x - 3][from.y] = Neutral;
+				white.show();
+				black.hide();
 			}
-		}
-		state.gmap[from] = None;
-		state.omap[from] = Neutral;
 
-		state.changeP();
-		if (state.HamI == Black)
-		{
-			black.show();
-			white.hide();
-		}
-		else
-		{
-			white.show();
-			black.hide();
-		}
+			auto ischeck = Ischeck(state);
+			auto isstalemate = Isstalemate(state);
 
-		auto ischeck = Ischeck(state);
-		auto isstalemate = Isstalemate(state);
-
-		checkmate.hide();
-		stalemate.hide();
-		check.hide();
+			checkmate.hide();
+			stalemate.hide();
+			check.hide();
 
 
-		if (ischeck)
-		{
-			if (isstalemate)
+			if (ischeck)
 			{
-				checkmate.show();
+				if (isstalemate)
+				{
+					checkmate.show();
+				}
+				else
+				{
+					check.show();
+				}
 			}
 			else
 			{
-				check.show();
+				if (isstalemate)
+					stalemate.show();
 			}
-		}
-		else
-		{
-			if (isstalemate)
-				stalemate.show();
-		}
 
-		lights.clear();
-		tPos.clear();
-		figures.update();
+			lights.clear();
+			tPos.clear();
+			figures.update();
 
-		if (isCompUpgradePawn)
-		{
-			state.changeP();
-			Butqueen(to);
-			state.changeP();
+			if (isCompUpgradePawn)
+			{
+				state.changeP();
+				Butqueen(to);
+				state.changeP();
+			}
 		}
 	}
 
@@ -963,11 +1037,13 @@ class MyApp : public App
 				if (g2 == v)
 				{
 					makemove(g1, g2);
-					compmove();
+					
 					break;
 				}
 			}
 		}
+			compmove();
+		//	if (Isstalemate) 
     }
 
     void move()
