@@ -604,6 +604,188 @@
                      "value" : 0
                   }
                }
+            },
+            {
+               "_name" : "history",
+               "_typeName" : "ScrollableArea",
+               "objects" : [
+                  {
+                     "_typeName" : "LinearLayout",
+                     "list" : [
+                        {
+                           "_name" : "columnW",
+                           "_typeName" : "LinearLayout",
+                           "list" : [],
+                           "position" : {
+                              "_typeName" : "AligningOffset",
+                              "horAlign" : 0,
+                              "horOffset" : {
+                                 "_typeName" : "RelativeValue",
+                                 "type" : 1,
+                                 "value" : 0
+                              },
+                              "vertAlign" : 0,
+                              "vertOffset" : {
+                                 "_typeName" : "RelativeValue",
+                                 "type" : 1,
+                                 "value" : 0
+                              }
+                           },
+                           "skin" : {
+                              "_typeName" : "VerticalLayoutSkin",
+                              "adjustment" : 1,
+                              "align" : 0,
+                              "box" : {
+                                 "_typeName" : "RelativeBox",
+                                 "height" : {
+                                    "_typeName" : "RelativeValue",
+                                    "type" : 0,
+                                    "value" : 0
+                                 },
+                                 "offset" : {
+                                    "_empty" : true
+                                 },
+                                 "width" : {
+                                    "_typeName" : "RelativeValue",
+                                    "type" : 0,
+                                    "value" : 0
+                                 }
+                              },
+                              "padding" : {
+                                 "_typeName" : "RelativeValue",
+                                 "type" : 1,
+                                 "value" : -0
+                              }
+                           },
+                           "skipInvisibleElements" : false
+                        },
+                        {
+                           "_name" : "columnB",
+                           "_typeName" : "LinearLayout",
+                           "list" : [],
+                           "position" : {
+                              "_typeName" : "AligningOffset",
+                              "horAlign" : 0,
+                              "horOffset" : {
+                                 "_typeName" : "RelativeValue",
+                                 "type" : 1,
+                                 "value" : 15
+                              },
+                              "vertAlign" : 0,
+                              "vertOffset" : {
+                                 "_typeName" : "RelativeValue",
+                                 "type" : 1,
+                                 "value" : 0
+                              }
+                           },
+                           "skin" : {
+                              "_typeName" : "VerticalLayoutSkin",
+                              "adjustment" : 1,
+                              "align" : 0,
+                              "box" : {
+                                 "_typeName" : "RelativeBox",
+                                 "height" : {
+                                    "_typeName" : "RelativeValue",
+                                    "type" : 0,
+                                    "value" : 0
+                                 },
+                                 "offset" : {
+                                    "_empty" : true
+                                 },
+                                 "width" : {
+                                    "_typeName" : "RelativeValue",
+                                    "type" : 0,
+                                    "value" : 0
+                                 }
+                              },
+                              "padding" : {
+                                 "_typeName" : "RelativeValue",
+                                 "type" : 1,
+                                 "value" : -0
+                              }
+                           },
+                           "skipInvisibleElements" : false
+                        }
+                     ],
+                     "position" : {
+                        "_typeName" : "AligningOffset",
+                        "horAlign" : 1,
+                        "horOffset" : {
+                           "_typeName" : "RelativeValue",
+                           "type" : 1,
+                           "value" : 0
+                        },
+                        "vertAlign" : 1,
+                        "vertOffset" : {
+                           "_typeName" : "RelativeValue",
+                           "type" : 1,
+                           "value" : 0
+                        }
+                     },
+                     "skin" : {
+                        "_typeName" : "HorizontalLayoutSkin",
+                        "adjustment" : 1,
+                        "align" : 0,
+                        "box" : {
+                           "_typeName" : "RelativeBox",
+                           "height" : {
+                              "_typeName" : "RelativeValue",
+                              "type" : 0,
+                              "value" : 0
+                           },
+                           "offset" : {
+                              "_empty" : true
+                           },
+                           "width" : {
+                              "_typeName" : "RelativeValue",
+                              "type" : 0,
+                              "value" : 0
+                           }
+                        },
+                        "padding" : {
+                           "_typeName" : "RelativeValue",
+                           "type" : 1,
+                           "value" : 15
+                        }
+                     },
+                     "skipInvisibleElements" : false
+                  }
+               ],
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 0,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  }
+               },
+               "recountObjectsBoxes" : true,
+               "skin" : {
+                  "_typeName" : "SimpleScrollableAreaSkin",
+                  "arrowColor" : [ 1, 1, 1, 1 ],
+                  "arrowPadding" : 3,
+                  "backgroundColor" : [ 0.9019607901573181, 0.9019607901573181, 0.9019607901573181, 1 ],
+                  "borderColor" : [ 1, 1, 1, 1 ],
+                  "borderWidth" : 1,
+                  "box" : {
+                     "_typeName" : "PixelBox",
+                     "height" : 500,
+                     "width" : 250
+                  },
+                  "fillColor" : [ 0.7843137383460999, 0.7843137383460999, 0.7843137383460999, 1 ],
+                  "horScrollBarEnabled" : true,
+                  "scrollBarWidth" : 16,
+                  "scrollStep" : 10,
+                  "useGradient" : true,
+                  "vertScrollBarEnabled" : true
+               }
             }
          ],
          "position" : {

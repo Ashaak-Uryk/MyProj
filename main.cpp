@@ -501,6 +501,8 @@ class MyApp : public App
 	
 	void Rest()
 	{
+		columnB.clear();
+		columnW.clear();
 		randomize();
 		state.HamI = White;
 		figures.clear();
@@ -756,6 +758,18 @@ class MyApp : public App
 			step += 15;
 	}
 
+	//bool NotSameMove(State state, Move m)
+	/*{
+		if (state.gmap[m.From] == lastfigure)
+			k.push_back(m.From);
+		else
+			k.clear();
+
+		if (k[0] == k[3] && k[3] == k[5] && k[2] == k[4] && k[4] == k[6])
+		return true;
+
+		return false;
+	}*/
 
 	float analyze(Move m)
 	{
@@ -853,6 +867,31 @@ class MyApp : public App
 		}
 	}*/
 
+	void text(State& state, IntVec2 from, IntVec2 to)
+	{
+		char h = state.gmap[to] == None ? h= '-' : h = ':';
+		
+		auto k = state.gmap[from];
+		vector<string> fs = { "", "", "B", "R", "N", "K", "Q"};
+		if (state.HamI == White)
+		{
+			auto labelW = columnW.load<Label>("Label.json");
+			labelW << fs[k] << usefull(from) << from.y + 1 << ' ' << h << ' ' << usefull(to) << to.y + 1;
+		}
+		else
+		{
+			auto labelB = columnB.load<Label>("Label.json");
+			labelB << fs[k] << usefull(from) << from.y + 1 << ' ' << h << ' ' << usefull(to) << to.y + 1;
+		}
+		design.update();
+	}
+
+	char usefull(IntVec2 some)
+	{
+		return 'a' + some.x;
+	}
+	
+
 	void makemove(IntVec2 from, IntVec2 to)
 	{
 		if (!Isstalemate(state))
@@ -878,7 +917,7 @@ class MyApp : public App
 					}
 				}
 			}
-
+			
 			bool isCompUpgradePawn = false;
 			if (state.gmap[from] == Pawn && (to.y == 0 || to.y == 7))
 			{
@@ -898,6 +937,7 @@ class MyApp : public App
 					isCompUpgradePawn = true;
 			}
 
+			text(state, from, to);
 
 			if (state.omap[to] == enemy)
 				for (auto i : figures.find(to.x * 50, to.y * 50))
@@ -906,6 +946,8 @@ class MyApp : public App
 
 			figures.find(from.x * 50, from.y * 50).back().setPos(to.x * 50, to.y * 50);
 			state.gmap[to] = state.gmap[from];
+
+			
 
 			state.omap[to] = state.HamI;
 			auto& king = state.HamI == White ? state.kingW : state.kingB;
@@ -948,8 +990,10 @@ class MyApp : public App
 					state.omap[from.x - 3][from.y] = Neutral;
 				}
 			}
+			
 			state.gmap[from] = None;
 			state.omap[from] = Neutral;
+
 
 			state.changeP();
 			if (state.HamI == Black)
@@ -965,21 +1009,27 @@ class MyApp : public App
 
 			auto ischeck = Ischeck(state);
 			auto isstalemate = Isstalemate(state);
+			
+			
 
 			checkmate.hide();
 			stalemate.hide();
 			check.hide();
-
+			auto p = state.HamI == White ? columnB : columnW;
 
 			if (ischeck)
 			{
 				if (isstalemate)
 				{
 					checkmate.show();
+					auto label = p.get<Label>(p.size() - 1);
+					label << label.text() << '#';
 				}
 				else
 				{
 					check.show();
+					auto label = p.get<Label>(p.size() - 1);
+					label << label.text() << '+';
 				}
 			}
 			else
@@ -1067,11 +1117,16 @@ class MyApp : public App
 	FromDesign(Button, ButQueen);
 	FromDesign(Button, ButPawn);
 	FromDesign(Button, ButRest);
+	FromDesign(Layout, columnW);
+	FromDesign(Layout, columnB);
 	IntVec2 g1;
 	IntVec2 g2;
 	IntVec2 vp;
 	IntVec2 ch;
+	vector<IntVec2> k;
 	vector<IntVec2> tPos;
+	int lastmoves;
+	int lastfigure;
 };
 
 int main(int argc, char** argv)
