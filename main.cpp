@@ -77,6 +77,14 @@ struct State
 		return false;
 	}
 
+	bool isMe(int x, int y)
+	{
+		if (x >= 0 && x < 8 && y >= 0 && y < 8)
+			return omap[x][y] == HamI;
+		return false;
+	}
+
+
 	bool isNE(int x, int y)
 	{
 		auto enemy = HamI == White ? Black : White;
@@ -87,6 +95,13 @@ struct State
 			return false;
 		}
 		return false;
+	}
+
+	bool isIn(int x, int y)
+	{ 
+		if (x >= 0 && x < 8 && y >= 0 && y < 8)
+			return true;
+		else return false;
 	}
 
 	void changeP()
@@ -126,7 +141,7 @@ enum MoveClass
 	Hits
 };
 
-bool isAttacking(State& state, IntVec2 v);
+bool isAttacking(State& state, IntVec2 p);
 void MoveTo(State& state, Move m)
 {
 	auto isWhite = state.HamI == White;
@@ -576,9 +591,9 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 	}
 }
 
-bool isAttacking(State& state, IntVec2 v)
+bool isAttacking(State& state, IntVec2 p)
 {
-	/**/int x, y;
+	/*int x, y;
 	vector<Move> n;
 	for (int x = 0; x < state.gmap.w; ++x)
 	{
@@ -601,6 +616,171 @@ bool isAttacking(State& state, IntVec2 v)
 
 //	if(state.gmap[v.x+1][v.y+1] == Pawn)
 
+	return false;*/
+
+	auto dir = state.HamI == Black ? -1 : 1;
+
+	if (( state.isMe(p.x + 1, p.y - dir) && state.gmap[p.x + 1][p.y - dir] == Pawn ) ||
+		( state.isMe(p.x - 1, p.y - dir) && state.gmap[p.x - 1][p.y - dir] == Pawn))
+		return true;
+
+	if ((state.isMe(p.x - 1, p.y + 2) && state.gmap[p.x - 1][p.y + 2] == Knight) ||
+		(state.isMe(p.x + 1, p.y + 2) && state.gmap[p.x + 1][p.y + 2] == Knight) ||
+		(state.isMe(p.x - 1, p.y - 2) && state.gmap[p.x - 1][p.y - 2] == Knight) ||
+		(state.isMe(p.x + 1, p.y - 2) && state.gmap[p.x + 1][p.y - 2] == Knight) ||
+		(state.isMe(p.x + 2, p.y + 1) && state.gmap[p.x + 2][p.y + 1] == Knight) ||
+		(state.isMe(p.x - 2, p.y - 1) && state.gmap[p.x - 2][p.y - 1] == Knight) ||
+		(state.isMe(p.x + 2, p.y - 1) && state.gmap[p.x + 2][p.y - 1] == Knight) ||
+		(state.isMe(p.x - 2, p.y + 1) && state.gmap[p.x - 2][p.y + 1] == Knight))
+		return true;
+
+	for (int i = 1; i < 8; i++)
+	{
+		if(state.isIn(p.x + i, p.y))
+		{
+			auto f = state.gmap[p.x + i][p.y];
+			if (f != Rook && f != Queen && state.omap[p.x+i][p.y] != Neutral)
+			{
+				break;
+			}
+			if ((f == Rook || f == Queen) && state.isMe(p.x + i, p.y))
+				return true;
+		}
+		else {
+			break;
+		}
+	}
+
+	for (int i = 1; i < 8; i++)
+	{
+		if (state.isIn(p.x - i, p.y))
+		{
+			auto f = state.gmap[p.x - i][p.y];
+			if (f != Rook && f != Queen && state.omap[p.x - i][p.y] != Neutral)
+			{
+				break;
+			}
+			if ((f == Rook || f == Queen) && state.isMe(p.x - i, p.y))
+				return true;
+		}
+		else {
+			break;
+		}
+	}
+
+	for (int i = 1; i < 8; i++)
+	{
+		if (state.isIn(p.x, p.y + i))
+		{
+			auto f = state.gmap[p.x][p.y + i];
+			if (f != Rook && f != Queen && state.omap[p.x][p.y + i] != Neutral)
+			{
+				break;
+			}
+			if ((f == Rook  || f == Queen) && state.isMe(p.x, p.y + i))
+				return true;
+		}
+		else {
+			break;
+		}
+	}
+
+	for (int i = 1; i < 8; i++)
+	{
+		if (state.isIn(p.x, p.y - i))
+		{
+			auto f = state.gmap[p.x][p.y - i];
+			if (f != Rook && f != Queen && state.omap[p.x][p.y - i] != Neutral)
+			{
+				break;
+			}
+			if ((f == Rook || f == Queen)  && state.isMe(p.x, p.y - i))
+				return true;
+		}
+		else {
+			break;
+		}
+	}
+
+
+	for (int i = 1; i < 8; i++)
+	{
+		if (state.isIn(p.x + i, p.y + i))
+		{
+			auto f = state.gmap[p.x + i][p.y + i];
+			if (f != Bishop && f != Queen && state.omap[p.x + i][p.y + i] != Neutral)
+			{
+				break;
+			}
+			if ((f == Bishop  || f == Queen) && state.isMe(p.x + i, p.y + i))
+				return true;
+		}
+		else {
+			break;
+		}
+	}
+
+	for (int i = 1; i < 8; i++)
+	{
+		if (state.isIn(p.x - i, p.y - i))
+		{
+			auto f = state.gmap[p.x - i][p.y - i];
+			if (f != Bishop && f != Queen && state.omap[p.x - i][p.y - i] != Neutral)
+			{
+				break;
+			}
+			if ((f == Bishop  || f == Queen ) && state.isMe(p.x - i, p.y - i))
+				return true;
+		}
+		else {
+			break;
+		}
+	}
+
+	for (int i = 1; i < 8; i++)
+	{
+		if (state.isIn(p.x - i, p.y + i))
+		{
+			auto f = state.gmap[p.x - i][p.y + i];
+			if (f != Bishop && f != Queen && state.omap[p.x - i][p.y + i] != Neutral)
+			{
+				break;
+			}
+			if ((f == Bishop || f == Queen) && state.isMe(p.x - i, p.y + i))
+				return true;
+		}
+		else {
+			break;
+		}
+	}
+
+	for (int i = 1; i < 8; i++)
+	{
+		if (state.isIn(p.x + i, p.y - i))
+		{
+			auto f = state.gmap[p.x + i][p.y - i];
+			if (f != Bishop && f != Queen && state.omap[p.x + i][p.y - i] != Neutral)
+			{
+				break;
+			}
+			if ((f == Bishop || f == Queen ) && state.isMe(p.x + i, p.y - i))
+				return true;
+		}
+		else {
+			break;
+		}
+	}
+
+	if ((state.isMe(p.x - 1, p.y -1) && state.gmap[p.x - 1][p.y - 1] == King) ||
+		(state.isMe(p.x - 1, p.y) && state.gmap[p.x - 1][p.y] == King) ||
+		(state.isMe(p.x - 1, p.y + 1) && state.gmap[p.x - 1][p.y + 1] == King) ||
+		(state.isMe(p.x, p.y + 1) && state.gmap[p.x][p.y + 1] == King) ||
+		(state.isMe(p.x, p.y - 1) && state.gmap[p.x][p.y - 1] == King) ||
+		(state.isMe(p.x + 1, p.y - 1) && state.gmap[p.x + 1][p.y - 1] == King) ||
+		(state.isMe(p.x + 1, p.y) && state.gmap[p.x + 1][p.y] == King) ||
+		(state.isMe(p.x + 1, p.y + 1) && state.gmap[p.x + 1][p.y + 1] == King))
+		return true;
+	
 	return false;
 }
 
@@ -888,36 +1068,32 @@ class MyApp : public App
 		if (state.gmap[m.To] == Rook)
 			step += 75;
 		if (state.gmap[m.To] == Pawn)
-			step += 25;
+			step += 15;
 		if (state.gmap[m.To] == None)
 			step += 10;
+		if (state.gmap[m.From] != King && state.gmap[m.From] != Queen)
+			step += 1;
 		auto prevFigure = state.gmap[m.To];
 		auto prevOwner = state.omap[m.To];
 		auto flags = state.flags;
 		MoveTo(state, m);
 		state.changeP();
 		if (Ischeck(state))
-			step += 20;
+			step += 10;
 
 		if (Ischeck(state) && Isstalemate(state))
 			step += 1000000;
 		state.changeP();
 		state.flags = flags;
 		MoveBack(state, m, prevFigure, prevOwner);
-		return step + randomFloat(-0.001, 0.001);
 
-		if (state.gmap[m.From] == King)
-			step += 5;
-		if (state.gmap[m.From] == Knight)
-			step += 20;
-		if (state.gmap[m.From] == Rook)
-			step += 20;
-		if (state.gmap[m.From] == Bishop)
-			step += 20;
-		if (state.gmap[m.From] == Queen)
-			step += 25;
-		if (state.gmap[m.From] == Pawn)
-			step += 15;
+		if(m.type == Promotion)
+			step += 75;
+
+		if (m.type == Castling)
+			step += 50;
+
+		return step + randomFloat(-0.001, 0.001);
 	}
 
 
