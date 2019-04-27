@@ -1,4 +1,6 @@
 #include <gamebase/Gamebase.h>
+#include <thread>
+#include <mutex>
 
 using namespace gamebase;
 using namespace std;
@@ -565,29 +567,28 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 
 	if (mclass == AllAllowed)
 	{
-		vector<Move> v2;
 		IntVec2 king = state.findKing(state.HamI);
-
 		auto flags = state.flags;
-		for (auto p2 : v)
-		{
-			auto Ifking = p == king ? p2.To : king;
 
-			auto prevFigure = state.gmap[p2.To];
-			auto prevOwner = state.omap[p2.To];
-			MoveTo(state,p2);
-			state.changeP();
-
-			if (!isAttacking(state, Ifking))
+		auto it = remove_if(
+			v.begin(),
+			v.end(),
+			[&](Move p2)
 			{
-				v2.push_back(p2);
-			}
+				auto Ifking = p == king ? p2.To : king;
 
-			state.changeP();
-			state.flags = flags;
-			MoveBack(state, p2, prevFigure, prevOwner);
-		}
-		swap(v, v2);
+				auto prevFigure = state.gmap[p2.To];
+				auto prevOwner = state.omap[p2.To];
+				MoveTo(state, p2);
+				state.changeP();
+
+				bool Attacking = isAttacking(state, Ifking);
+				state.changeP();
+				state.flags = flags;
+				MoveBack(state, p2, prevFigure, prevOwner);
+				return Attacking;
+			});
+		v.erase(it, v.end());
 	}
 }
 
@@ -808,6 +809,7 @@ bool Isstalemate(State& state)
 	if (n == 2)
 		return true;
 	vector<Move> c;
+	c.reserve(100);
 	for (int x = 0; x < 8; ++x)
 	{
 		for (int y = 0; y <= 7; ++y)
@@ -822,6 +824,118 @@ bool Isstalemate(State& state)
 	}
 	return true;
 }
+
+mutex Mutex;
+vector<Move> Movebefore;
+vector<Move> Moveafter;
+
+float analyzeOneStep(Move m, State& state)
+{
+	float step = 0;
+	if (state.gmap[m.To] == Queen)
+		step += 100;
+	if (state.gmap[m.To] == Knight || state.gmap[m.To] == Bishop)
+		step += 50;
+	if (state.gmap[m.To] == Rook)
+		step += 75;
+	if (state.gmap[m.To] == Pawn)
+		step += 15;
+	if (state.gmap[m.To] == None)
+		step += 10;
+	if (state.gmap[m.From] != King && state.gmap[m.From] != Queen)
+		step += 1;
+	auto prevFigure = state.gmap[m.To];
+	auto prevOwner = state.omap[m.To];
+	auto flags = state.flags;
+	MoveTo(state, m);
+	state.changeP();
+	if (Ischeck(state))
+	{
+		step += 10;
+		if (Isstalemate(state))
+			step += 1000000;
+	}
+	state.changeP();
+	state.flags = flags;
+	MoveBack(state, m, prevFigure, prevOwner);
+
+	if (m.type == Promotion)
+		step += 75;
+
+	if (m.type == Castling)
+		step += 50;
+
+	return step + randomFloat(-0.001, 0.001);
+}
+
+float analyzeMT(Move m, int depth, State& state)
+{
+	float MyStep = analyzeOneStep(m, state);
+	vector<Move> c;
+	c.reserve(100);
+	if (depth > 1)
+	{
+		float max = -10000000;
+		auto prevFigure = state.gmap[m.To];
+		auto prevOwner = state.omap[m.To];
+		auto flags = state.flags;
+		MoveTo(state, m);
+		state.changeP();
+		for (int x = 0; x < 8; ++x)
+		{
+			for (int y = 0; y < 8; ++y)
+			{
+				if (state.omap[x][y] == state.HamI)
+				{
+					movePawn(state, IntVec2(x, y), AllAllowed, c);
+					for (auto n : c)
+					{
+
+						n.q = analyzeMT(n, depth - 1, state);
+						if (n.q > max)
+							max = n.q;
+					}
+				}
+			}
+		}
+		state.changeP();
+		state.flags = flags;
+		MoveBack(state, m, prevFigure, prevOwner);
+		return MyStep - max;
+	}
+	return MyStep;
+}
+
+float analyzeMT(Move m, State& state)
+{
+	return analyzeMT(m, 6,  state);
+}
+
+void AnalyzeAll(State state)
+{
+	for (;;)
+	{
+		Mutex.lock();
+		if (Movebefore.empty())
+		{
+			Mutex.unlock();
+			break;
+		}
+		auto m = Movebefore.back();
+		Movebefore.pop_back();
+		cout << "Remaining " << Movebefore.size() << " moves..." << endl;
+		Mutex.unlock();
+
+		m.q = analyzeMT(m, state);
+
+		Mutex.lock();
+		Moveafter.push_back(m);
+		Mutex.unlock();
+		
+	}
+}
+
+
 
 class MyApp : public App
 {
@@ -1010,8 +1124,9 @@ class MyApp : public App
 	vector<Move> computermoves()
 	{
 		vector<Move> c;
-		vector<Move> result;
 		auto copy = copyState(state);
+		Movebefore.clear();
+		Moveafter.clear();
 		for (int x = 0; x < 8; ++x)
 		{
 			for (int y = 0; y < 8; ++y)
@@ -1021,16 +1136,24 @@ class MyApp : public App
 					movePawn(state, IntVec2(x, y), AllAllowed, c);
 					for (auto m : c)
 					{      
-						m.q = analyze(m);
-						result.push_back(m);
+						//m.q = analyze(m);
+						Movebefore.push_back(m);
 					}
 				}
 			}
 		}
-		if (state.gmap.map != copy.gmap.map)
-			cout << "AAAAAAAAA!!!!!!!!!!!!!!!" << endl;
+
+		vector<thread> Core;
+		for (int i = 0; i < thread::hardware_concurrency(); i++)
+		{
+			Core.emplace_back(AnalyzeAll, copyState(state));
+		}
+		for (auto& i : Core)
+		{
+			i.join();
+		}
 		state = std::move(copy);
-		return result;
+		return Moveafter;
 	}
 
 	//bool IsInDanger(State& state)
@@ -1057,44 +1180,6 @@ class MyApp : public App
 			}
 		}
 	}*/
-
-	float analyzeOneStep(Move m)
-	{
-		float step = 0;
-		if (state.gmap[m.To] == Queen)
-			step += 100;
-		if (state.gmap[m.To] == Knight || state.gmap[m.To] == Bishop)
-			step += 50;
-		if (state.gmap[m.To] == Rook)
-			step += 75;
-		if (state.gmap[m.To] == Pawn)
-			step += 15;
-		if (state.gmap[m.To] == None)
-			step += 10;
-		if (state.gmap[m.From] != King && state.gmap[m.From] != Queen)
-			step += 1;
-		auto prevFigure = state.gmap[m.To];
-		auto prevOwner = state.omap[m.To];
-		auto flags = state.flags;
-		MoveTo(state, m);
-		state.changeP();
-		if (Ischeck(state))
-			step += 10;
-
-		if (Ischeck(state) && Isstalemate(state))
-			step += 1000000;
-		state.changeP();
-		state.flags = flags;
-		MoveBack(state, m, prevFigure, prevOwner);
-
-		if(m.type == Promotion)
-			step += 75;
-
-		if (m.type == Castling)
-			step += 50;
-
-		return step + randomFloat(-0.001, 0.001);
-	}
 
 
 	//bool NotSameMove(State state, Move m)
@@ -1153,7 +1238,7 @@ class MyApp : public App
 
 	float analyze(Move m, int depth)
 	{
-		float MyStep = analyzeOneStep(m);
+		float MyStep = analyzeOneStep(m, state);
 		vector<Move> c;
 		if (depth > 1)
 		{
