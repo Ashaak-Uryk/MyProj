@@ -75,6 +75,32 @@
                }
             },
             {
+               "_name" : "Field",
+               "_typeName" : "StaticTextureRect",
+               "box" : {
+                  "_typeName" : "PixelBox",
+                  "height" : 490,
+                  "width" : 490
+               },
+               "color" : [ 1, 1, 1, 1 ],
+               "imageName" : ".\\Field.png",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 30
+                  }
+               }
+            },
+            {
                "_name" : "stalemate",
                "_typeName" : "StaticLabel",
                "adjustSize" : true,
@@ -248,7 +274,7 @@
                   "vertOffset" : {
                      "_typeName" : "RelativeValue",
                      "type" : 1,
-                     "value" : 225
+                     "value" : 300
                   }
                },
                "properties" : {
@@ -287,7 +313,7 @@
                   "vertOffset" : {
                      "_typeName" : "RelativeValue",
                      "type" : 1,
-                     "value" : 225
+                     "value" : 300
                   }
                },
                "properties" : {
@@ -518,7 +544,7 @@
                   "vertOffset" : {
                      "_typeName" : "RelativeValue",
                      "type" : 1,
-                     "value" : 0
+                     "value" : -10
                   }
                },
                "skin" : {
@@ -601,7 +627,7 @@
                   "vertOffset" : {
                      "_typeName" : "RelativeValue",
                      "type" : 1,
-                     "value" : 0
+                     "value" : 30
                   }
                }
             },
@@ -786,6 +812,226 @@
                   "useGradient" : true,
                   "vertScrollBarEnabled" : true
                }
+            },
+            {
+               "_name" : "forplay",
+               "_typeName" : "Button",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : 0
+                  },
+                  "vertAlign" : 1,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -10
+                  }
+               },
+               "skin" : {
+                  "_typeName" : "SimpleRectangleButtonSkin",
+                  "borderColor" : [ 1, 1, 1, 1 ],
+                  "borderWidth" : 1,
+                  "box" : {
+                     "_typeName" : "PixelBox",
+                     "height" : 48,
+                     "width" : 250
+                  },
+                  "fillColor" : [ 0, 0, 0, 1 ],
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Roboto",
+                     "outlineWidth" : 1,
+                     "size" : 28
+                  },
+                  "text" : "Change Opponent",
+                  "textColor" : [ 1, 1, 1, 1 ],
+                  "textOutlineColor" : [ 1, 1, 1, 1 ],
+                  "useGradient" : false
+               }
+            },
+            {
+               "_name" : "save",
+               "_typeName" : "Button",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 2,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -130
+                  },
+                  "vertAlign" : 0,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -10
+                  }
+               },
+               "skin" : {
+                  "_typeName" : "SimpleRectangleButtonSkin",
+                  "borderColor" : [ 1, 1, 1, 1 ],
+                  "borderWidth" : 1,
+                  "box" : {
+                     "_typeName" : "PixelBox",
+                     "height" : 48,
+                     "width" : 100
+                  },
+                  "fillColor" : [ 0, 0, 0, 1 ],
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Roboto",
+                     "outlineWidth" : 1,
+                     "size" : 28
+                  },
+                  "text" : "Save",
+                  "textColor" : [ 1, 1, 1, 1 ],
+                  "textOutlineColor" : [ 1, 1, 1, 1 ],
+                  "useGradient" : false
+               }
+            },
+            {
+               "_name" : "loading",
+               "_typeName" : "Button",
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 2,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -10
+                  },
+                  "vertAlign" : 0,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -10
+                  }
+               },
+               "skin" : {
+                  "_typeName" : "SimpleRectangleButtonSkin",
+                  "borderColor" : [ 1, 1, 1, 1 ],
+                  "borderWidth" : 1,
+                  "box" : {
+                     "_typeName" : "PixelBox",
+                     "height" : 48,
+                     "width" : 100
+                  },
+                  "fillColor" : [ 0, 0, 0, 1 ],
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Roboto",
+                     "outlineWidth" : 1,
+                     "size" : 28
+                  },
+                  "text" : "Load",
+                  "textColor" : [ 1, 1, 1, 1 ],
+                  "textOutlineColor" : [ 1, 1, 1, 1 ],
+                  "useGradient" : false
+               }
+            },
+            {
+               "_name" : "OpponentP",
+               "_typeName" : "StaticLabel",
+               "adjustSize" : true,
+               "box" : {
+                  "_typeName" : "RelativeBox",
+                  "height" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 0,
+                     "value" : 0
+                  },
+                  "offset" : {
+                     "_empty" : true
+                  },
+                  "width" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 0,
+                     "value" : 0
+                  }
+               },
+               "color" : [ 1, 1, 1, 1 ],
+               "outlineColor" : [ 1, 1, 1, 1 ],
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -10
+                  },
+                  "vertAlign" : 0,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -10
+                  }
+               },
+               "properties" : {
+                  "_typeName" : "AlignProperties",
+                  "enableStacking" : false,
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Roboto",
+                     "size" : 35
+                  },
+                  "horAlign" : 2,
+                  "vertAlign" : 0
+               },
+               "text" : "Player vs Player"
+            },
+            {
+               "_name" : "OpponentC",
+               "_typeName" : "StaticLabel",
+               "adjustSize" : true,
+               "box" : {
+                  "_typeName" : "RelativeBox",
+                  "height" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 0,
+                     "value" : 0
+                  },
+                  "offset" : {
+                     "_empty" : true
+                  },
+                  "width" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 0,
+                     "value" : 0
+                  }
+               },
+               "color" : [ 1, 1, 1, 1 ],
+               "outlineColor" : [ 1, 1, 1, 1 ],
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 1,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -10
+                  },
+                  "vertAlign" : 0,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -10
+                  }
+               },
+               "properties" : {
+                  "_typeName" : "AlignProperties",
+                  "enableStacking" : false,
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "family" : "Roboto",
+                     "size" : 35
+                  },
+                  "horAlign" : 2,
+                  "vertAlign" : 0
+               },
+               "text" : "Player vs Computer"
             }
          ],
          "position" : {

@@ -1,6 +1,9 @@
 #include <gamebase/Gamebase.h>
+#include <fstream>
+#include <string>
 #include <thread>
 #include <mutex>
+
 
 using namespace gamebase;
 using namespace std;
@@ -594,31 +597,6 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 
 bool isAttacking(State& state, IntVec2 p)
 {
-	/*int x, y;
-	vector<Move> n;
-	for (int x = 0; x < state.gmap.w; ++x)
-	{
-		for (int y = 0; y < state.gmap.h; ++y)
-		{
-			if (state.omap[x][y] == state.HamI)
-			{
-				movePawn(state, IntVec2(x, y), Hits, n);
-				for (auto f : n)
-				{
-					if (v == f.To)                    
-					{
-						return true;
-					}
-				}
-			}
-		}
-	}
-	//if (state.gmap[v.x + 1][v.y + 1]==Knight)
-
-//	if(state.gmap[v.x+1][v.y+1] == Pawn)
-
-	return false;*/
-
 	auto dir = state.HamI == Black ? -1 : 1;
 
 	if (( state.isMe(p.x + 1, p.y - dir) && state.gmap[p.x + 1][p.y - dir] == Pawn ) ||
@@ -908,7 +886,7 @@ float analyzeMT(Move m, int depth, State& state)
 
 float analyzeMT(Move m, State& state)
 {
-	return analyzeMT(m, 6,  state);
+	return analyzeMT(m, 6, state);
 }
 
 void AnalyzeAll(State state)
@@ -931,11 +909,8 @@ void AnalyzeAll(State state)
 		Mutex.lock();
 		Moveafter.push_back(m);
 		Mutex.unlock();
-		
 	}
 }
-
-
 
 class MyApp : public App
 {
@@ -943,6 +918,8 @@ class MyApp : public App
 	{
 		connect(ButRest, Rest);
 		ButRest.setPos(0, -270);
+		OpponentP.show();
+		OpponentC.hide();
 		Rest();
 	}
 
@@ -951,6 +928,7 @@ class MyApp : public App
 		columnB.clear();
 		columnW.clear();
 		randomize();
+		Field.show();
 		state.HamI = White;
 		figures.clear();
 		map<Color, int> colorToType = {
@@ -987,6 +965,25 @@ class MyApp : public App
 		state.gmap = loadMap("pole.png", colorToType);
 		state.omap = loadMap("owner.png", colorToOwner);
 
+		DrawFigures(state);
+
+		field.setView(400 / 2 - 50 / 2, 400 / 2 - 50 / 2);
+		black.hide();
+		check.hide();
+		checkmate.hide();
+		stalemate.hide();
+		ButRook.setPos(260, 155);  ButRook.hide();   //connect(ButRook, Butrook);
+		ButBishop.setPos(260, 80); ButBishop.hide(); //connect(ButBishop, Butbishop);
+		ButKnight.setPos(260, 5);  ButKnight.hide(); //connect(ButKnight, Butknight);
+		ButQueen.setPos(260, -70); ButQueen.hide();  //connect(ButQueen, Butqueen);
+		ButPawn.setPos(260, -145); ButPawn.hide();   //connect(ButPawn, Butpawn);
+		forplay.setPos(65, -300);  connect(forplay, ChangeOpp);
+		ButRest.setPos(-135, -300); 
+		design.update();
+	}
+
+	void DrawFigures(State& state)
+	{
 		for (int x = 0; x < state.gmap.w; ++x)
 		{
 			for (int y = 0; y < state.gmap.h; ++y)
@@ -1040,17 +1037,90 @@ class MyApp : public App
 
 			}
 		}
-		field.setView(400 / 2 - 50 / 2, 400 / 2 - 50 / 2);
-		black.hide();
-		check.hide();
-		checkmate.hide();
-		stalemate.hide();
-		ButRook.setPos(260, 155);  ButRook.hide();   //connect(ButRook, Butrook);
-		ButBishop.setPos(260, 80); ButBishop.hide(); //connect(ButBishop, Butbishop);
-		ButKnight.setPos(260, 5);  ButKnight.hide(); //connect(ButKnight, Butknight);
-		ButQueen.setPos(260, -70); ButQueen.hide();  //connect(ButQueen, Butqueen);
-		ButPawn.setPos(260, -145); ButPawn.hide();   //connect(ButPawn, Butpawn);
-		ButRest.setPos(0, -300); ButPawn.hide();   //connect(ButPawn, Butpawn);
+	}
+
+	void SavingGame()
+	{
+		ofstream Save("SaveGame.txt");
+		for (int x = 0; x <= 7; x++)
+		{
+			for (int y = 0; y <= 7; y++)
+			{
+				Save << state.gmap[x][y] <<' ' << state.omap[x][y] << endl;
+			}
+		}
+		Save << state.HamI << endl;
+		Save << state.flags.walkTW.size() << endl;
+		for (auto v : state.flags.walkTW)
+		{
+			Save << v.x << " " << v.y << endl;
+		}
+		Save << state.flags.walkTB.size() << endl;
+		for (auto v : state.flags.walkTB)
+		{
+			Save << v.x << " " << v.y << endl;
+		} 
+		Save << state.flags.kingW << " " << state.flags.kingB
+			<< " " << state.flags.rookW[0] << " " << state.flags.rookW[1]
+			<< " " << state.flags.rookB[0] << " " << state.flags.rookB[1];
+		Save.close();
+	}
+
+	void LoadGame()
+	{
+		ifstream Save("SaveGame.txt");
+		if (!Save.is_open())
+		{
+			return;
+		}
+		for (int x = 0; x <= 7; x++)
+		{
+			for (int y = 0; y <= 7; y++)
+			{
+				Save >> state.gmap[x][y] >> state.omap[x][y];
+			}
+		}
+		Save >> state.HamI;
+		int size = 0;
+		Save >> size;
+		state.flags.walkTB.clear();
+		for (int i = 0; i < size; ++i)
+		{
+			IntVec2 v;
+			Save >> v.x >> v.y;
+			state.flags.walkTB.push_back(v);
+		}
+		Save >> size;
+		state.flags.walkTW.clear();
+		for (int i = 0; i < size; ++i)
+		{
+			IntVec2 v;
+			Save >> v.x >> v.y;
+			state.flags.walkTW.push_back(v);
+		}
+		Save >> state.flags.kingW >> state.flags.kingB
+			>> state.flags.rookW[0] >> state.flags.rookW[1]
+			>> state.flags.rookB[0] >> state.flags.rookB[1];
+		figures.clear();
+		DrawFigures(state);
+		figures.update();
+		design.update();
+	}
+
+	void ChangeOpp() 
+	{
+		IsSecondPlayer = !IsSecondPlayer;
+		if (!IsSecondPlayer)
+		{
+			OpponentC.show();
+			OpponentP.hide();
+		}
+		else
+		{
+			OpponentC.hide();
+			OpponentP.show();
+		}
+		Rest();
 	}
 
 	IntVec2 cell(Vec2 v)
@@ -1135,7 +1205,7 @@ class MyApp : public App
 				{
 					movePawn(state, IntVec2(x, y), AllAllowed, c);
 					for (auto m : c)
-					{      
+					{
 						//m.q = analyze(m);
 						Movebefore.push_back(m);
 					}
@@ -1156,203 +1226,6 @@ class MyApp : public App
 		return Moveafter;
 	}
 
-	//bool IsInDanger(State& state)
-	/*{
-		vector<IntVec2> c;
-		vector<IntVec2> n;
-		for (int x = 0; x < 8; ++x)
-		{
-			for (int y = 0; y <= 7; ++y)
-			{
-				if (state.omap[x][y] == state.HamI)
-				{
-					c = movePawn(state, IntVec2(x, y), AllAllowed);
-
-
-					for (int x1 = 0; x1 < 8; ++x1)
-					{
-						for (int y1 = 0; y1 <= 7; ++y1)
-						{
-
-						}
-					}
-				}
-			}
-		}
-	}*/
-
-
-	//bool NotSameMove(State state, Move m)
-	/*{
-		if (state.gmap[m.From] == lastfigure)
-			k.push_back(m.From);
-		else
-			k.clear();
-
-		if (k[0] == k[3] && k[3] == k[5] && k[2] == k[4] && k[4] == k[6])
-		return true;
-
-		return false;
-	}*/
-
-	/*float analyze(Move m)
-	{
-		float max = -10000000;
-		float MyStep;
-		MyStep = analyzeOneStep(m);
-		auto prevFigure = state.gmap[m.To];
-		auto prevOwner = state.omap[m.To];
-		state.gmap[m.To] = state.gmap[m.From];
-		state.omap[m.To] = state.omap[m.From];
-		state.gmap[m.From] = None;
-		state.omap[m.From] = Neutral;
-		state.changeP();
-		for (int x = 0; x < 8; ++x)
-		{
-			for (int y = 0; y < 8; ++y)
-			{
-				if (state.omap[x][y] == state.HamI)
-				{
-					auto c = movePawn(state, IntVec2(x, y), AllAllowed);
-					for (auto i : c)
-					{
-						Move n;
-						n.From = IntVec2(x, y);
-						n.To = i;
-						n.q = analyzeOneStep(n);
-						if (n.q > max)
-							max = n.q;
-					}
-				}
-			}
-		}
-		state.changeP();
-		state.gmap[m.From] = state.gmap[m.To];
-		state.omap[m.From] = state.omap[m.To];
-		state.gmap[m.To] = prevFigure;
-		state.omap[m.To] = prevOwner;
-		return MyStep - max;
-	}*/
-
-	
-
-	float analyze(Move m, int depth)
-	{
-		float MyStep = analyzeOneStep(m, state);
-		vector<Move> c;
-		if (depth > 1)
-		{
-			float max = -10000000;
-			auto prevFigure = state.gmap[m.To];
-			auto prevOwner = state.omap[m.To];
-			auto flags = state.flags;
-			MoveTo(state, m);
-			state.changeP();
-			for (int x = 0; x < 8; ++x)
-			{
-				for (int y = 0; y < 8; ++y)
-				{
-					if (state.omap[x][y] == state.HamI)
-					{
-						movePawn(state, IntVec2(x, y), AllAllowed, c);
-						for (auto n : c)
-						{
-							
-							n.q = analyze(n, depth - 1);
-							if (n.q > max)
-								max = n.q;
-						}
-					}
-				}
-			}
-			state.changeP();
-			state.flags = flags;
-			MoveBack(state, m, prevFigure, prevOwner);
-			return MyStep - max;
-		}
-		return MyStep;
-	}
-
-	float analyze(Move m)
-	{
-		return analyze(m, 4);
-	}
-
-	/*float analyze(Move m)
-	{
-		float max = -10000000,  maxn = -10000000;
-		float MyStep;
-		MyStep = analyzeOneStep(m);
-		auto prevFigure = state.gmap[m.To];
-		auto prevOwner = state.omap[m.To];
-		state.gmap[m.To] = state.gmap[m.From];
-		state.omap[m.To] = state.omap[m.From];
-		state.gmap[m.From] = None;
-		state.omap[m.From] = Neutral;
-		state.changeP();
-		for (int x = 0; x < 8; ++x)
-		{
-			for (int y = 0; y < 8; ++y)
-			{
-				if (state.omap[x][y] == state.HamI)
-				{
-					auto c = movePawn(state, IntVec2(x, y), AllAllowed);
-					for (auto i : c)
-					{
-						Move n;
-						n.From = IntVec2(x, y);
-						n.To = i;
-						n.q = analyzeOneStep(n);
-						auto prevOpFigure = state.gmap[n.To];
-						auto prevOpOwner = state.omap[n.To];
-						state.gmap[n.To] = state.gmap[n.From];
-						state.omap[n.To] = state.omap[n.From];
-						state.gmap[n.From] = None;
-						state.omap[n.From] = Neutral;
-						state.changeP();
-
-						for (int x = 0; x < 8; ++x)
-						{
-							for (int y = 0; y < 8; ++y)
-							{
-								if (state.omap[x][y] == state.HamI)
-								{
-									auto v = movePawn(state, IntVec2(x, y), AllAllowed);
-									for (auto j : v)
-									{
-										Move f;
-										f.From = IntVec2(x, y);
-										f.To = j;
-										f.q = analyzeOneStep(f);
-										if (f.q > maxn)
-											maxn = f.q;
-									}
-								}
-							}
-						}
-						state.changeP();
-						state.gmap[n.From] = state.gmap[n.To];
-						state.omap[n.From] = state.omap[n.To];
-						state.gmap[n.To] = prevOpFigure;
-						state.omap[n.To] = prevOpOwner;
-
-						if (n.q > max)
-							max = n.q- maxn;
-					}
-				}
-			}
-		}
-		state.changeP();
-		state.gmap[m.From] = state.gmap[m.To];
-		state.omap[m.From] = state.omap[m.To];
-		state.gmap[m.To] = prevFigure;
-		state.omap[m.To] = prevOwner;
-		return MyStep - max;
-	}*/
-
-	//void useful(Move m)
-	//{}
-
 	void compmove()
 	{
 		auto moves = computermoves();
@@ -1372,45 +1245,6 @@ class MyApp : public App
 			return;
 		makemove(m.From, m.To);
 	}
-
-	//vector<IntVec2> moves(vector<IntVec2> c)
-	/*{
-		vector<IntVec2> n;
-		for(auto i: c)
-		{
-			for (int x = 0; x < 8; ++x)
-			{
-				for (int y = 0; y < 8; ++y)
-				{
-					if (state.omap[x][y] == state.HamI)
-					{
-						n = movePawn(state, IntVec2(x, y), AllAllowed);
-
-						for (auto j : n)
-						{
-							auto prevFigure = state.gmap[p2];
-							auto prevOwner = state.omap[p2];
-							state.gmap[p2] = state.gmap[p];
-							state.omap[p2] = state.omap[p];
-							state.gmap[p] = None;
-							state.omap[p] = Neutral;
-
-							if (!isAttacking(state, Ifking))
-							{
-								v2.push_back(p2);
-							}
-
-							state.gmap[p] = state.gmap[p2];
-							state.omap[p] = state.omap[p2];
-							state.gmap[p2] = prevFigure;
-							state.omap[p2] = prevOwner;
-						}
-
-					}
-				}
-			}
-		}
-	}*/
 
 	void text(State& state, IntVec2 from, IntVec2 to)
 	{
@@ -1478,10 +1312,12 @@ class MyApp : public App
 				connect(ButQueen, Butqueen, to);
 				connect(ButPawn, Butpawn, to);
 
-				if (state.HamI == Black)
+				if (state.HamI == Black && !IsSecondPlayer)
 					isCompUpgradePawn = true;
 			}
 
+			
+			
 			text(state, from, to);
 
 			if (state.omap[to] == enemy)
@@ -1624,6 +1460,8 @@ class MyApp : public App
 			ButQueen.hide();
 			ButPawn.hide();
 		}
+		connect(save, SavingGame);
+		connect(loading, LoadGame);
 		if (input.justPressed(MouseRight))
 		{
 			g2 = cell(p);
@@ -1632,8 +1470,11 @@ class MyApp : public App
 				if (g2 == v.To)       
 				{
 					makemove(g1, g2);
-					//compmove();
-					break;
+					/*if(!IsSecondPlayer)
+					{ 
+						compmove();
+					}
+					break;*/
 				}
 			}
 		}
@@ -1653,6 +1494,8 @@ class MyApp : public App
 	LayerFromDesign(void, lights);
 	FromDesign(Label, black);
 	FromDesign(Label, white);
+	FromDesign(Label, OpponentP);
+	FromDesign(Label, OpponentC);
 	FromDesign(Label, check);
 	FromDesign(Label, checkmate);
 	FromDesign(Label, stalemate);
@@ -1662,8 +1505,12 @@ class MyApp : public App
 	FromDesign(Button, ButQueen);
 	FromDesign(Button, ButPawn);
 	FromDesign(Button, ButRest);
+	FromDesign(Button, forplay);
+	FromDesign(Button, save);
+	FromDesign(Button, loading);
 	FromDesign(Layout, columnW);
 	FromDesign(Layout, columnB);
+	FromDesign(Texture, Field);
 	IntVec2 g1;
 	IntVec2 g2;
 	IntVec2 vp;
@@ -1672,12 +1519,13 @@ class MyApp : public App
 	vector<Move> tPos;
 	int lastmoves;
 	int lastfigure;
+	bool IsSecondPlayer = true;
 };
 
 int main(int argc, char** argv)
 {
 	MyApp app;
-	app.setConfig("MyProjConfig.json");
+	app.setConfig("MyProj-masterConfig.json");
 	app.setDesign("Design.json");
 	if (!app.init(&argc, argv))
 		return 1;
