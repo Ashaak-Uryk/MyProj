@@ -51,10 +51,43 @@ struct Move
 	float q;
 };
 
+struct Optional
+{
+	IntVec2 v;
+	bool IamE;
+	void clear()
+	{
+		IamE = false;
+	}
+	int size()
+	{
+		if (IamE)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	void set(int x, int y)
+	{
+		v.x = x;
+		v.y = y;
+		IamE = true;
+	}
+	void set(IntVec2 m)
+	{
+		v = m;
+		IamE = true;
+	}
+
+};
+
 struct Flags
 {
-	vector<IntVec2> walkTB;
-	vector<IntVec2> walkTW;
+	Optional walkTB;
+	Optional walkTW;
 	bool kingW = true;
 	bool kingB = true;
 	array<bool, 2> rookW = { { true, true } };
@@ -63,14 +96,18 @@ struct Flags
 
 struct State
 {
-	GameMap gmap;
-	GameMap omap;
+public:
+	int& gmap(int x, int y) { return gmap_[x*8 + y]; }
+	int& gmap(IntVec2 v) { return gmap(v.x, v.y); }
+	int& omap(int x, int y) { return omap_[x * 8 + y]; }
+	int& omap(IntVec2 v) { return omap(v.x, v.y); }
+
 	Flags flags;
 
 	bool isN(int x, int y)
 	{
 		if (x >= 0 && x < 8 && y >= 0 && y < 8)
-			return omap[x][y] == Neutral;
+			return omap(x,y) == Neutral;
 		return false;
 	}
 
@@ -78,14 +115,14 @@ struct State
 	{
 		auto enemy = HamI == White ? Black : White;
 		if (x >= 0 && x < 8 && y >= 0 && y < 8)
-			return omap[x][y] == enemy;
+			return omap(x, y) == enemy;
 		return false;
 	}
 
 	bool isMe(int x, int y)
 	{
 		if (x >= 0 && x < 8 && y >= 0 && y < 8)
-			return omap[x][y] == HamI;
+			return omap(x, y) == HamI;
 		return false;
 	}
 
@@ -95,7 +132,7 @@ struct State
 		auto enemy = HamI == White ? Black : White;
 		if (x >= 0 && x < 8 && y >= 0 && y < 8)
 		{
-			if (omap[x][y] == enemy || omap[x][y] == Neutral)
+			if (omap(x, y) == enemy || omap(x, y) == Neutral)
 				return true;
 			return false;
 		}
@@ -124,11 +161,11 @@ struct State
 	IntVec2 findKing(int owner)
 	{
 		IntVec2 king;
-		for (int x = 0; x < gmap.w; ++x)
+		for (int x = 0; x < 8; ++x)
 		{
-			for (int y = 0; y < gmap.h; ++y)
+			for (int y = 0; y < 8; ++y)
 			{
-				if (gmap[x][y] == King && omap[x][y] == owner)
+				if (gmap(x, y) == King && omap(x, y) == owner)
 				{
 					king = IntVec2(x, y);
 				}
@@ -138,6 +175,10 @@ struct State
 	}
 
 	int HamI = White;
+
+private:
+	array<int, 64> gmap_;
+	array<int, 64> omap_;
 };
 
 enum MoveClass
@@ -153,22 +194,22 @@ void MoveTo(State& state, Move m)
 	auto& mywalk = isWhite ? state.flags.walkTW : state.flags.walkTB;
 	auto& enemywalk = isWhite ? state.flags.walkTB : state.flags.walkTW;
 	int dir = isWhite ? 1 : -1;
-	if (state.gmap[m.From] == Pawn)
+	if (state.gmap(m.From) == Pawn)
 	{
 		if (m.From.y == m.To.y - 2 * dir)
-			mywalk.emplace_back(m.To.x, m.To.y - dir);
+			mywalk.set(m.To.x, m.To.y - dir);
 
 		if (m.type == EnPassant)
 		{
-			state.gmap[m.To.x][m.To.y - dir] = None;
-			state.omap[m.To.x][m.To.y - dir] = Neutral;
+			state.gmap(m.To.x, m.To.y - dir) = None;
+			state.omap(m.To.x, m.To.y - dir) = Neutral;
 		}
 	}
 
 	enemywalk.clear();
 	auto& king = state.HamI == White ? state.flags.kingW : state.flags.kingB;
 	auto& rook = state.HamI == White ? state.flags.rookW : state.flags.rookB;
-	if (state.gmap[m.From] == Rook)
+	if (state.gmap(m.From) == Rook)
 	{
 		if (m.To.x > 4)
 		{
@@ -179,7 +220,7 @@ void MoveTo(State& state, Move m)
 			rook[0] = false;
 		}
 	}
-	if (state.gmap[m.From] == King && !(m.From.x + 2 == m.To.x || m.From.x - 2 == m.To.x))
+	if (state.gmap(m.From) == King && !(m.From.x + 2 == m.To.x || m.From.x - 2 == m.To.x))
 	{
 		king = false;
 	}
@@ -189,32 +230,32 @@ void MoveTo(State& state, Move m)
 		if (m.To.x > 4)
 		{
 			rook[1] = false;
-			state.gmap[m.From.x + 1][m.From.y] = Rook;
-			state.omap[m.From.x + 1][m.From.y] = state.HamI;
-			state.gmap[m.From.x + 4][m.From.y] = None;
-			state.omap[m.From.x + 4][m.From.y] = Neutral;
+			state.gmap(m.From.x + 1, m.From.y) = Rook;
+			state.omap(m.From.x + 1, m.From.y) = state.HamI;
+			state.gmap(m.From.x + 4, m.From.y) = None;
+			state.omap(m.From.x + 4, m.From.y) = Neutral;
 		}
 		else
 		{
 			rook[0] = false;
-			state.gmap[m.From.x - 1][m.From.y] = Rook;
-			state.omap[m.From.x - 1][m.From.y] = state.HamI;
-			state.gmap[m.From.x - 3][m.From.y] = None;
-			state.omap[m.From.x - 3][m.From.y] = Neutral;
+			state.gmap(m.From.x - 1, m.From.y) = Rook;
+			state.omap(m.From.x - 1, m.From.y) = state.HamI;
+			state.gmap(m.From.x - 3, m.From.y) = None;
+			state.omap(m.From.x - 3, m.From.y) = Neutral;
 		}
 	}
 
 	if (m.type == Promotion)
 	{
-		state.gmap[m.To] = Queen;
+		state.gmap(m.To) = Queen;
 	}
 	else
 	{
-		state.gmap[m.To] = state.gmap[m.From];
+		state.gmap(m.To) = state.gmap(m.From);
 	}
-	state.omap[m.To] = state.omap[m.From];
-	state.gmap[m.From] = None;
-	state.omap[m.From] = Neutral;
+	state.omap(m.To) = state.omap(m.From);
+	state.gmap(m.From) = None;
+	state.omap(m.From) = Neutral;
 }
 
 void MoveBack(State& state, Move m, int prevFigure, int prevOwner)
@@ -225,39 +266,39 @@ void MoveBack(State& state, Move m, int prevFigure, int prevOwner)
 	int dir = isWhite ? 1 : -1;
 	if (m.type == EnPassant)
 	{
-		state.gmap[m.To.x][m.To.y - dir] = Pawn;
-		state.omap[m.To.x][m.To.y - dir] = enemy;
+		state.gmap(m.To.x, m.To.y - dir) = Pawn;
+		state.omap(m.To.x, m.To.y - dir) = enemy;
 	}
 
 	if (m.type == Castling)
 	{
 		if (m.To.x > 4)
 		{
-			state.gmap[m.From.x + 1][m.From.y] = None;
-			state.omap[m.From.x + 1][m.From.y] = Neutral;
-			state.gmap[m.From.x + 4][m.From.y] = Rook;
-			state.omap[m.From.x + 4][m.From.y] = state.HamI;
+			state.gmap(m.From.x + 1, m.From.y) = None;
+			state.omap(m.From.x + 1, m.From.y) = Neutral;
+			state.gmap(m.From.x + 4, m.From.y) = Rook;
+			state.omap(m.From.x + 4, m.From.y) = state.HamI;
 		}
 		else
 		{
-			state.gmap[m.From.x - 1][m.From.y] = None;
-			state.omap[m.From.x - 1][m.From.y] = Neutral;
-			state.gmap[m.From.x - 3][m.From.y] = Rook;
-			state.omap[m.From.x - 3][m.From.y] = state.HamI;
+			state.gmap(m.From.x - 1, m.From.y) = None;
+			state.omap(m.From.x - 1, m.From.y) = Neutral;
+			state.gmap(m.From.x - 3, m.From.y) = Rook;
+			state.omap(m.From.x - 3, m.From.y) = state.HamI;
 		}
 	}
 
 	if (m.type == Promotion)
 	{
-		state.gmap[m.From] = Pawn;
+		state.gmap(m.From) = Pawn;
 	}
 	else
 	{
-		state.gmap[m.From] = state.gmap[m.To];
+		state.gmap(m.From) = state.gmap(m.To);
 	}
-	state.omap[m.From] = state.omap[m.To];
-	state.gmap[m.To] = prevFigure;
-	state.omap[m.To] = prevOwner;
+	state.omap(m.From) = state.omap(m.To);
+	state.gmap(m.To) = prevFigure;
+	state.omap(m.To) = prevOwner;
 }
 
 
@@ -265,14 +306,14 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 {
 	v.clear();
 	auto WmyO = state.HamI == White ? Black : White;
-	auto isWhite = state.omap[p] == White;
+	auto isWhite = state.omap(p) == White;
 	int dir = isWhite ? 1 : -1;
 	auto enemy = isWhite ? Black : White;
 
-	//if (state.omap[p] == White)
-	if (state.omap[p] != WmyO)
+	//if (state.omap(p) == White)
+	if (state.omap(p) != WmyO)
 	{
-		if (state.gmap[p] == Pawn)
+		if (state.gmap(p) == Pawn)
 		{
 			int yNext = p.y + dir;
 			auto yLast = isWhite ? 7 : 0;
@@ -280,30 +321,30 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 
 			if (0 <= yNext && yNext < 8 && p.x < 8 && p.x >= 0)
 			{
-				if (state.omap[p.x][yNext] == Neutral && mclass != Hits)
+				if (state.omap(p.x, yNext) == Neutral && mclass != Hits)
 				{
 					v.emplace_back(p, p.x, yNext, type);
 				}
 
-				if (p.x != 7 && state.omap[p.x + 1][yNext] == enemy)
+				if (p.x != 7 && state.omap(p.x + 1, yNext) == enemy)
 				{
 					v.emplace_back(p,p.x + 1, yNext, type);
 				}
 
-				if (p.x != 0 && state.omap[p.x - 1][yNext] == enemy)
+				if (p.x != 0 && state.omap(p.x - 1, yNext) == enemy)
 				{
 					v.emplace_back(p,p.x - 1, yNext, type);
 				}
 
 				auto& walkT = state.HamI == White ? state.flags.walkTB : state.flags.walkTW;
-				for (auto n : walkT)
+				if(walkT.IamE)
 				{
-					if (p.x + 1 == n.x && yNext == n.y)
+					if (p.x + 1 == walkT.v.x && yNext == walkT.v.y)
 					{
 						v.emplace_back(p, p.x + 1, yNext, EnPassant);
 					}
 
-					if (p.x - 1 == n.x && yNext == n.y)
+					if (p.x - 1 == walkT.v.x && yNext == walkT.v.y)
 					{
 						v.emplace_back(p,p.x - 1, yNext, EnPassant);
 					}
@@ -311,8 +352,8 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 			}
 
 			int d = isWhite ? 1 : 6;
-			if (p.y == d && state.omap[p.x][p.y + 2 * dir] == Neutral
-				&& state.omap[p.x][p.y + 1 * dir] == Neutral && mclass != Hits)
+			if (p.y == d && state.omap(p.x, p.y + 2 * dir) == Neutral
+				&& state.omap(p.x, p.y + 1 * dir) == Neutral && mclass != Hits)
 			{
 				v.emplace_back(p,p.x, p.y + 2 * dir, Regular);
 
@@ -321,7 +362,7 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 
 
 
-		if (state.gmap[p] == Knight)
+		if (state.gmap(p) == Knight)
 		{
 			if (state.isNE(p.x - 1, p.y + 2))
 				v.emplace_back(p,p.x - 1, p.y + 2, Regular);
@@ -348,39 +389,39 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 				v.emplace_back(p,p.x - 2, p.y - 1, Regular);
 		}
 
-		if (state.gmap[p] == King)
+		if (state.gmap(p) == King)
 		{
 			int yN1 = p.y + 1, yN2 = p.y - 1;
 			int xN1 = p.x + 1, xN2 = p.x - 1;
 
 			if (yN1 < 8)
 			{
-				if (state.omap[p.x][yN1] == Neutral)
+				if (state.omap(p.x, yN1) == Neutral)
 					v.emplace_back(p,p.x, yN1, Regular);
 
-				if (xN1 < 8 && state.omap[xN1][yN1] == Neutral)
+				if (xN1 < 8 && state.omap(xN1, yN1) == Neutral)
 					v.emplace_back(p,xN1, yN1, Regular);
 
-				if (xN2 >= 0 && state.omap[xN2][yN1] == Neutral)
+				if (xN2 >= 0 && state.omap(xN2, yN1) == Neutral)
 					v.emplace_back(p,xN2, yN1, Regular);
 			}
 
 			if (yN2 >= 0)
 			{
-				if (state.omap[p.x][yN2] == Neutral)
+				if (state.omap(p.x, yN2) == Neutral)
 					v.emplace_back(p,p.x, yN2, Regular);
 
-				if (xN1 < 8 && state.omap[xN1][yN2] == Neutral)
+				if (xN1 < 8 && state.omap(xN1, yN2) == Neutral)
 					v.emplace_back(p,xN1, yN2, Regular);
 
-				if (xN2 >= 0 && state.omap[xN2][yN2] == Neutral)
+				if (xN2 >= 0 && state.omap(xN2, yN2) == Neutral)
 					v.emplace_back(p,xN2, yN2, Regular);
 			}
 
-			if (xN1 < 8 && state.omap[p.x + 1][p.y] == Neutral)
+			if (xN1 < 8 && state.omap(p.x + 1, p.y) == Neutral)
 				v.emplace_back(p,p.x + 1, p.y, Regular);
 
-			if (xN2 >= 0 && state.omap[p.x - 1][p.y] == Neutral)
+			if (xN2 >= 0 && state.omap(p.x - 1, p.y) == Neutral)
 				v.emplace_back(p,p.x - 1, p.y, Regular);
 
 			auto& king = state.HamI == White ? state.flags.kingW : state.flags.kingB;
@@ -388,15 +429,15 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 			if (king)
 			{
 
-				if (p.x - 3 > 0 && state.gmap[p.x - 1][p.y] == None && state.gmap[p.x - 2][p.y] == None
-					&& state.gmap[p.x - 3][p.y] == Rook && rook[0] == true)
+				if (p.x - 3 > 0 && state.gmap(p.x - 1, p.y) == None && state.gmap(p.x - 2, p.y) == None
+					&& state.gmap(p.x - 3, p.y) == Rook && rook[0] == true)
 				{
 					v.emplace_back(p,p.x - 2, p.y, Castling);
 				}
 
 
-				if (p.x + 4 < 8 && state.gmap[p.x + 1][p.y] == None && state.gmap[p.x + 2][p.y] == None
-					&& state.gmap[p.x + 3][p.y] == None && state.gmap[p.x + 4][p.y] == Rook
+				if (p.x + 4 < 8 && state.gmap(p.x + 1, p.y) == None && state.gmap(p.x + 2, p.y) == None
+					&& state.gmap(p.x + 3, p.y) == None && state.gmap(p.x + 4, p.y) == Rook
 					&& rook[1] == true)
 				{
 					v.emplace_back(p,p.x + 2, p.y, Castling);
@@ -404,7 +445,7 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 			}
 		}
 
-		if (state.gmap[p] == Rook || state.gmap[p] == Queen)
+		if (state.gmap(p) == Rook || state.gmap(p) == Queen)
 		{
 
 			for (int i = 1; i < 8; i++)
@@ -469,7 +510,7 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 			}
 		}
 
-		if (state.gmap[p] == Bishop || state.gmap[p] == Queen)
+		if (state.gmap(p) == Bishop || state.gmap(p) == Queen)
 		{
 			for (int i = 1; i < 8; i++)
 			{
@@ -531,7 +572,7 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 				}
 			}
 		}
-		if (state.gmap[p] == King)
+		if (state.gmap(p) == King)
 		{
 			if (p.x + 1 <= 7 && state.isNE(p.x + 1, p.y))
 			{
@@ -580,8 +621,8 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 			{
 				auto Ifking = p == king ? p2.To : king;
 
-				auto prevFigure = state.gmap[p2.To];
-				auto prevOwner = state.omap[p2.To];
+				auto prevFigure = state.gmap(p2.To);
+				auto prevOwner = state.omap(p2.To);
 				MoveTo(state, p2);
 				state.changeP();
 
@@ -599,26 +640,26 @@ bool isAttacking(State& state, IntVec2 p)
 {
 	auto dir = state.HamI == Black ? -1 : 1;
 
-	if (( state.isMe(p.x + 1, p.y - dir) && state.gmap[p.x + 1][p.y - dir] == Pawn ) ||
-		( state.isMe(p.x - 1, p.y - dir) && state.gmap[p.x - 1][p.y - dir] == Pawn))
+	if (( state.isMe(p.x + 1, p.y - dir) && state.gmap(p.x + 1, p.y - dir) == Pawn ) ||
+		( state.isMe(p.x - 1, p.y - dir) && state.gmap(p.x - 1, p.y - dir) == Pawn))
 		return true;
 
-	if ((state.isMe(p.x - 1, p.y + 2) && state.gmap[p.x - 1][p.y + 2] == Knight) ||
-		(state.isMe(p.x + 1, p.y + 2) && state.gmap[p.x + 1][p.y + 2] == Knight) ||
-		(state.isMe(p.x - 1, p.y - 2) && state.gmap[p.x - 1][p.y - 2] == Knight) ||
-		(state.isMe(p.x + 1, p.y - 2) && state.gmap[p.x + 1][p.y - 2] == Knight) ||
-		(state.isMe(p.x + 2, p.y + 1) && state.gmap[p.x + 2][p.y + 1] == Knight) ||
-		(state.isMe(p.x - 2, p.y - 1) && state.gmap[p.x - 2][p.y - 1] == Knight) ||
-		(state.isMe(p.x + 2, p.y - 1) && state.gmap[p.x + 2][p.y - 1] == Knight) ||
-		(state.isMe(p.x - 2, p.y + 1) && state.gmap[p.x - 2][p.y + 1] == Knight))
+	if ((state.isMe(p.x - 1, p.y + 2) && state.gmap(p.x - 1, p.y + 2) == Knight) ||
+		(state.isMe(p.x + 1, p.y + 2) && state.gmap(p.x + 1, p.y + 2) == Knight) ||
+		(state.isMe(p.x - 1, p.y - 2) && state.gmap(p.x - 1, p.y - 2) == Knight) ||
+		(state.isMe(p.x + 1, p.y - 2) && state.gmap(p.x + 1, p.y - 2) == Knight) ||
+		(state.isMe(p.x + 2, p.y + 1) && state.gmap(p.x + 2, p.y + 1) == Knight) ||
+		(state.isMe(p.x - 2, p.y - 1) && state.gmap(p.x - 2, p.y - 1) == Knight) ||
+		(state.isMe(p.x + 2, p.y - 1) && state.gmap(p.x + 2, p.y - 1) == Knight) ||
+		(state.isMe(p.x - 2, p.y + 1) && state.gmap(p.x - 2, p.y + 1) == Knight))
 		return true;
 
 	for (int i = 1; i < 8; i++)
 	{
 		if(state.isIn(p.x + i, p.y))
 		{
-			auto f = state.gmap[p.x + i][p.y];
-			if (f != Rook && f != Queen && state.omap[p.x+i][p.y] != Neutral)
+			auto f = state.gmap(p.x + i, p.y);
+			if (f != Rook && f != Queen && state.omap(p.x+i, p.y) != Neutral)
 			{
 				break;
 			}
@@ -634,8 +675,8 @@ bool isAttacking(State& state, IntVec2 p)
 	{
 		if (state.isIn(p.x - i, p.y))
 		{
-			auto f = state.gmap[p.x - i][p.y];
-			if (f != Rook && f != Queen && state.omap[p.x - i][p.y] != Neutral)
+			auto f = state.gmap(p.x - i, p.y);
+			if (f != Rook && f != Queen && state.omap(p.x - i, p.y) != Neutral)
 			{
 				break;
 			}
@@ -651,8 +692,8 @@ bool isAttacking(State& state, IntVec2 p)
 	{
 		if (state.isIn(p.x, p.y + i))
 		{
-			auto f = state.gmap[p.x][p.y + i];
-			if (f != Rook && f != Queen && state.omap[p.x][p.y + i] != Neutral)
+			auto f = state.gmap(p.x, p.y + i);
+			if (f != Rook && f != Queen && state.omap(p.x, p.y + i) != Neutral)
 			{
 				break;
 			}
@@ -668,8 +709,8 @@ bool isAttacking(State& state, IntVec2 p)
 	{
 		if (state.isIn(p.x, p.y - i))
 		{
-			auto f = state.gmap[p.x][p.y - i];
-			if (f != Rook && f != Queen && state.omap[p.x][p.y - i] != Neutral)
+			auto f = state.gmap(p.x, p.y - i);
+			if (f != Rook && f != Queen && state.omap(p.x, p.y - i) != Neutral)
 			{
 				break;
 			}
@@ -686,8 +727,8 @@ bool isAttacking(State& state, IntVec2 p)
 	{
 		if (state.isIn(p.x + i, p.y + i))
 		{
-			auto f = state.gmap[p.x + i][p.y + i];
-			if (f != Bishop && f != Queen && state.omap[p.x + i][p.y + i] != Neutral)
+			auto f = state.gmap(p.x + i, p.y + i);
+			if (f != Bishop && f != Queen && state.omap(p.x + i, p.y + i) != Neutral)
 			{
 				break;
 			}
@@ -703,8 +744,8 @@ bool isAttacking(State& state, IntVec2 p)
 	{
 		if (state.isIn(p.x - i, p.y - i))
 		{
-			auto f = state.gmap[p.x - i][p.y - i];
-			if (f != Bishop && f != Queen && state.omap[p.x - i][p.y - i] != Neutral)
+			auto f = state.gmap(p.x - i, p.y - i);
+			if (f != Bishop && f != Queen && state.omap(p.x - i, p.y - i) != Neutral)
 			{
 				break;
 			}
@@ -720,8 +761,8 @@ bool isAttacking(State& state, IntVec2 p)
 	{
 		if (state.isIn(p.x - i, p.y + i))
 		{
-			auto f = state.gmap[p.x - i][p.y + i];
-			if (f != Bishop && f != Queen && state.omap[p.x - i][p.y + i] != Neutral)
+			auto f = state.gmap(p.x - i, p.y + i);
+			if (f != Bishop && f != Queen && state.omap(p.x - i, p.y + i) != Neutral)
 			{
 				break;
 			}
@@ -737,8 +778,8 @@ bool isAttacking(State& state, IntVec2 p)
 	{
 		if (state.isIn(p.x + i, p.y - i))
 		{
-			auto f = state.gmap[p.x + i][p.y - i];
-			if (f != Bishop && f != Queen && state.omap[p.x + i][p.y - i] != Neutral)
+			auto f = state.gmap(p.x + i, p.y - i);
+			if (f != Bishop && f != Queen && state.omap(p.x + i, p.y - i) != Neutral)
 			{
 				break;
 			}
@@ -750,14 +791,14 @@ bool isAttacking(State& state, IntVec2 p)
 		}
 	}
 
-	if ((state.isMe(p.x - 1, p.y -1) && state.gmap[p.x - 1][p.y - 1] == King) ||
-		(state.isMe(p.x - 1, p.y) && state.gmap[p.x - 1][p.y] == King) ||
-		(state.isMe(p.x - 1, p.y + 1) && state.gmap[p.x - 1][p.y + 1] == King) ||
-		(state.isMe(p.x, p.y + 1) && state.gmap[p.x][p.y + 1] == King) ||
-		(state.isMe(p.x, p.y - 1) && state.gmap[p.x][p.y - 1] == King) ||
-		(state.isMe(p.x + 1, p.y - 1) && state.gmap[p.x + 1][p.y - 1] == King) ||
-		(state.isMe(p.x + 1, p.y) && state.gmap[p.x + 1][p.y] == King) ||
-		(state.isMe(p.x + 1, p.y + 1) && state.gmap[p.x + 1][p.y + 1] == King))
+	if ((state.isMe(p.x - 1, p.y -1) && state.gmap(p.x - 1, p.y - 1) == King) ||
+		(state.isMe(p.x - 1, p.y) && state.gmap(p.x - 1, p.y) == King) ||
+		(state.isMe(p.x - 1, p.y + 1) && state.gmap(p.x - 1, p.y + 1) == King) ||
+		(state.isMe(p.x, p.y + 1) && state.gmap(p.x, p.y + 1) == King) ||
+		(state.isMe(p.x, p.y - 1) && state.gmap(p.x, p.y - 1) == King) ||
+		(state.isMe(p.x + 1, p.y - 1) && state.gmap(p.x + 1, p.y - 1) == King) ||
+		(state.isMe(p.x + 1, p.y) && state.gmap(p.x + 1, p.y) == King) ||
+		(state.isMe(p.x + 1, p.y + 1) && state.gmap(p.x + 1, p.y + 1) == King))
 		return true;
 	
 	return false;
@@ -780,7 +821,7 @@ bool Isstalemate(State& state)
 	{
 		for (int y = 0; y <= 7; ++y)
 		{
-			if (state.gmap[x][y] != None)
+			if (state.gmap(x, y) != None)
 				n++;
 		}
 	}
@@ -792,7 +833,7 @@ bool Isstalemate(State& state)
 	{
 		for (int y = 0; y <= 7; ++y)
 		{
-			if (state.omap[x][y] == state.HamI)
+			if (state.omap(x, y) == state.HamI)
 			{
 				movePawn(state, IntVec2(x, y), AllAllowed, c);
 				if (c.size() > 0)
@@ -810,20 +851,20 @@ vector<Move> Moveafter;
 float analyzeOneStep(Move m, State& state)
 {
 	float step = 0;
-	if (state.gmap[m.To] == Queen)
+	if (state.gmap(m.To) == Queen)
 		step += 100;
-	if (state.gmap[m.To] == Knight || state.gmap[m.To] == Bishop)
+	if (state.gmap(m.To) == Knight || state.gmap(m.To) == Bishop)
 		step += 50;
-	if (state.gmap[m.To] == Rook)
+	if (state.gmap(m.To) == Rook)
 		step += 75;
-	if (state.gmap[m.To] == Pawn)
+	if (state.gmap(m.To) == Pawn)
 		step += 15;
-	if (state.gmap[m.To] == None)
+	if (state.gmap(m.To) == None)
 		step += 10;
-	if (state.gmap[m.From] != King && state.gmap[m.From] != Queen)
+	if (state.gmap(m.From) != King && state.gmap(m.From) != Queen)
 		step += 1;
-	auto prevFigure = state.gmap[m.To];
-	auto prevOwner = state.omap[m.To];
+	auto prevFigure = state.gmap(m.To);
+	auto prevOwner = state.omap(m.To);
 	auto flags = state.flags;
 	MoveTo(state, m);
 	state.changeP();
@@ -854,8 +895,8 @@ float analyzeMT(Move m, int depth, State& state)
 	if (depth > 1)
 	{
 		float max = -10000000;
-		auto prevFigure = state.gmap[m.To];
-		auto prevOwner = state.omap[m.To];
+		auto prevFigure = state.gmap(m.To);
+		auto prevOwner = state.omap(m.To);
 		auto flags = state.flags;
 		MoveTo(state, m);
 		state.changeP();
@@ -863,7 +904,7 @@ float analyzeMT(Move m, int depth, State& state)
 		{
 			for (int y = 0; y < 8; ++y)
 			{
-				if (state.omap[x][y] == state.HamI)
+				if (state.omap(x, y) == state.HamI)
 				{
 					movePawn(state, IntVec2(x, y), AllAllowed, c);
 					for (auto n : c)
@@ -947,6 +988,8 @@ class MyApp : public App
 		{ Color(0, 0, 0), Black }
 		};
 
+		auto gmap = loadMap("pole.png", colorToType);
+		auto omap = loadMap("owner.png", colorToOwner);
 		for (int y = 0; y < 8; y++)
 		{
 			for (int x = 0; x < 8; x++)
@@ -960,10 +1003,11 @@ class MyApp : public App
 				{
 					square.skin<FilledRect>().setColor(250, 233, 209);
 				}
+
+				state.gmap(x, y) = gmap[x][y];
+				state.omap(x, y) = omap[x][y];
 			}
 		}
-		state.gmap = loadMap("pole.png", colorToType);
-		state.omap = loadMap("owner.png", colorToOwner);
 
 		DrawFigures(state);
 
@@ -984,53 +1028,53 @@ class MyApp : public App
 
 	void DrawFigures(State& state)
 	{
-		for (int x = 0; x < state.gmap.w; ++x)
+		for (int x = 0; x < 8; ++x)
 		{
-			for (int y = 0; y < state.gmap.h; ++y)
+			for (int y = 0; y < 8; ++y)
 			{
-				if (state.gmap[x][y] == Pawn)
+				if (state.gmap(x, y) == Pawn)
 				{
 					auto pawn = figures.load("Pawn.json", 50 * x, 50 * y);
-					if (state.omap[x][y] == Black)
+					if (state.omap(x, y) == Black)
 						pawn.skin<Texture>().setColor(0, 0, 0);
 				}
 
-				if (state.gmap[x][y] == Rook)
+				if (state.gmap(x, y) == Rook)
 				{
 					auto rook = figures.load("Rook.json", 50 * x, 50 * y);
-					if (state.omap[x][y] == Black)
+					if (state.omap(x, y) == Black)
 						rook.skin<Texture>().setColor(0, 0, 0);
 
 				}
 
-				if (state.gmap[x][y] == Bishop)
+				if (state.gmap(x, y) == Bishop)
 				{
 					auto bishop = figures.load("Bishop.json", 50 * x, 50 * y);
-					if (state.omap[x][y] == Black)
+					if (state.omap(x, y) == Black)
 						bishop.skin<Texture>().setColor(0, 0, 0);
 
 				}
 
-				if (state.gmap[x][y] == Knight)
+				if (state.gmap(x, y) == Knight)
 				{
 					auto knight = figures.load("Knight.json", 50 * x, 50 * y);
-					if (state.omap[x][y] == Black)
+					if (state.omap(x, y) == Black)
 						knight.skin<Texture>().setColor(0, 0, 0);
 
 				}
 
-				if (state.gmap[x][y] == King)
+				if (state.gmap(x, y) == King)
 				{
 					auto king = figures.load("King.json", 50 * x, 50 * y);
-					if (state.omap[x][y] == Black)
+					if (state.omap(x, y) == Black)
 						king.skin<Texture>().setColor(0, 0, 0);
 
 				}
 
-				if (state.gmap[x][y] == Queen)
+				if (state.gmap(x, y) == Queen)
 				{
 					auto queen = figures.load("Queen.json", 50 * x, 50 * y);
-					if (state.omap[x][y] == Black)
+					if (state.omap(x, y) == Black)
 						queen.skin<Texture>().setColor(0, 0, 0);
 
 				}
@@ -1046,19 +1090,19 @@ class MyApp : public App
 		{
 			for (int y = 0; y <= 7; y++)
 			{
-				Save << state.gmap[x][y] <<' ' << state.omap[x][y] << endl;
+				Save << state.gmap(x, y) <<' ' << state.omap(x, y) << endl;
 			}
 		}
 		Save << state.HamI << endl;
 		Save << state.flags.walkTW.size() << endl;
-		for (auto v : state.flags.walkTW)
+		if(state.flags.walkTW.IamE)
 		{
-			Save << v.x << " " << v.y << endl;
+			Save << state.flags.walkTW.v.x << " " << state.flags.walkTW.v.y << endl;
 		}
 		Save << state.flags.walkTB.size() << endl;
-		for (auto v : state.flags.walkTB)
+		if (state.flags.walkTB.IamE)
 		{
-			Save << v.x << " " << v.y << endl;
+			Save << state.flags.walkTB.v.x << " " << state.flags.walkTB.v.y << endl;
 		} 
 		Save << state.flags.kingW << " " << state.flags.kingB
 			<< " " << state.flags.rookW[0] << " " << state.flags.rookW[1]
@@ -1077,7 +1121,7 @@ class MyApp : public App
 		{
 			for (int y = 0; y <= 7; y++)
 			{
-				Save >> state.gmap[x][y] >> state.omap[x][y];
+				Save >> state.gmap(x, y) >> state.omap(x, y);
 			}
 		}
 		Save >> state.HamI;
@@ -1088,7 +1132,7 @@ class MyApp : public App
 		{
 			IntVec2 v;
 			Save >> v.x >> v.y;
-			state.flags.walkTB.push_back(v);
+			state.flags.walkTB.set(v);
 		}
 		Save >> size;
 		state.flags.walkTW.clear();
@@ -1096,7 +1140,7 @@ class MyApp : public App
 		{
 			IntVec2 v;
 			Save >> v.x >> v.y;
-			state.flags.walkTW.push_back(v);
+			state.flags.walkTW.set(v);
 		}
 		Save >> state.flags.kingW >> state.flags.kingB
 			>> state.flags.rookW[0] >> state.flags.rookW[1]
@@ -1135,60 +1179,51 @@ class MyApp : public App
 	{
 		for (auto i : figures.find(p.x * 50, p.y * 50))
 			i.kill();
-		state.gmap[p] = Rook;
+		state.gmap(p) = Rook;
 		auto rook = figures.load("Rook.json", 50 * p.x, 50 * p.y);
-		if (state.omap[p] == Black)
+		if (state.omap(p) == Black)
 			rook.skin<Texture>().setColor(0, 0, 0);
 	}
 	void Butbishop(IntVec2 p)
 	{
 		for (auto i : figures.find(p.x * 50, p.y * 50))
 			i.kill();
-		state.gmap[p] = Bishop;
+		state.gmap(p) = Bishop;
 		auto bishop = figures.load("Bishop.json", 50 * p.x, 50 * p.y);
-		if (state.omap[p] == Black)
+		if (state.omap(p) == Black)
 			bishop.skin<Texture>().setColor(0, 0, 0);
 	}
 	void Butknight(IntVec2 p)
 	{
 		for (auto i : figures.find(p.x * 50, p.y * 50))
 			i.kill();
-		state.gmap[p] = Knight;
+		state.gmap(p) = Knight;
 		auto knight = figures.load("Knight.json", 50 * p.x, 50 * p.y);
-		if (state.omap[p] == Black)
+		if (state.omap(p) == Black)
 			knight.skin<Texture>().setColor(0, 0, 0);
 	}
 	void Butqueen(IntVec2 p)
 	{
 		for (auto i : figures.find(p.x * 50, p.y * 50))
 			i.kill();
-		state.gmap[p] = Queen;
+		state.gmap(p) = Queen;
 		auto queen = figures.load("Queen.json", 50 * p.x, 50 * p.y);
-		if (state.omap[p] == Black)
+		if (state.omap(p) == Black)
 			queen.skin<Texture>().setColor(0, 0, 0);
 	}
 	void Butpawn(IntVec2 p)
 	{
 		for (auto i : figures.find(p.x * 50, p.y * 50))
 			i.kill();
-		state.gmap[p] = Pawn;
+		state.gmap(p) = Pawn;
 		auto pawn = figures.load("Pawn.json", 50 * p.x, 50 * p.y);
-		if (state.omap[p] == Black)
+		if (state.omap(p) == Black)
 			pawn.skin<Texture>().setColor(0, 0, 0);
 	}
 
 	State copyState(State& state)
 	{
-		State newState;
-		newState.gmap.map = state.gmap.map;
-		newState.gmap.w = state.gmap.w;
-		newState.gmap.h = state.gmap.h;
-		newState.omap.map = state.omap.map;
-		newState.omap.w = state.omap.w;
-		newState.omap.h = state.omap.h;
-		newState.flags = state.flags;
-		newState.HamI = state.HamI;
-		return newState;
+		return state;
 	}
 
 	vector<Move> computermoves()
@@ -1201,7 +1236,7 @@ class MyApp : public App
 		{
 			for (int y = 0; y < 8; ++y)
 			{
-				if (state.omap[x][y] == state.HamI)
+				if (state.omap(x, y) == state.HamI)
 				{
 					movePawn(state, IntVec2(x, y), AllAllowed, c);
 					for (auto m : c)
@@ -1248,9 +1283,9 @@ class MyApp : public App
 
 	void text(State& state, IntVec2 from, IntVec2 to)
 	{
-		char h = state.gmap[to] == None ? h = '-' : h = ':';
+		char h = state.gmap(to) == None ? h = '-' : h = ':';
 
-		auto k = state.gmap[from];
+		auto k = state.gmap(from);
 		vector<string> fs = { "", "", "B", "R", "N", "K", "Q" };
 		if (state.HamI == White)
 		{
@@ -1279,18 +1314,18 @@ class MyApp : public App
 			auto enemy = isWhite ? Black : White;
 			auto& mywalk = isWhite ? state.flags.walkTW : state.flags.walkTB;
 			auto& enemywalk = isWhite ? state.flags.walkTB : state.flags.walkTW;
-			if (state.gmap[from] == Pawn)
+			if (state.gmap(from) == Pawn)
 			{
 				int dir = isWhite ? 1 : -1;
 				if (from.y == to.y - 2 * dir)
-					mywalk.emplace_back(to.x, to.y - dir);
+					mywalk.set(to.x, to.y - dir);
 
-				for (auto n : enemywalk)
+				if(enemywalk.IamE)
 				{
-					if (n == to)
+					if (enemywalk.v == to)
 					{
-						state.gmap[to.x][to.y - dir] = None;
-						state.omap[to.x][to.y - dir] = Neutral;
+						state.gmap(to.x, to.y - dir) = None;
+						state.omap(to.x, to.y - dir) = Neutral;
 						for (auto i : figures.find(to.x * 50, (to.y - dir) * 50))
 							i.kill();
 					}
@@ -1298,7 +1333,7 @@ class MyApp : public App
 			}
 
 			bool isCompUpgradePawn = false;
-			if (state.gmap[from] == Pawn && (to.y == 0 || to.y == 7))
+			if (state.gmap(from) == Pawn && (to.y == 0 || to.y == 7))
 			{
 				ButRook.show();
 				ButBishop.show();
@@ -1320,20 +1355,20 @@ class MyApp : public App
 			
 			text(state, from, to);
 
-			if (state.omap[to] == enemy)
+			if (state.omap(to) == enemy)
 				for (auto i : figures.find(to.x * 50, to.y * 50))
 					i.kill();
 			enemywalk.clear();
 
 			figures.find(from.x * 50, from.y * 50).back().setPos(to.x * 50, to.y * 50);
-			state.gmap[to] = state.gmap[from];
+			state.gmap(to) = state.gmap(from);
 
 
 
-			state.omap[to] = state.HamI;
+			state.omap(to) = state.HamI;
 			auto& king = state.HamI == White ? state.flags.kingW : state.flags.kingB;
 			auto& rook = state.HamI == White ? state.flags.rookW : state.flags.rookB;
-			if (state.gmap[from] == Rook)
+			if (state.gmap(from) == Rook)
 			{
 				if (to.x > 4)
 				{
@@ -1344,11 +1379,11 @@ class MyApp : public App
 					rook[0] = false;
 				}
 			}
-			if (state.gmap[from] == King && !(from.x + 2 == to.x || from.x - 2 == to.x))
+			if (state.gmap(from) == King && !(from.x + 2 == to.x || from.x - 2 == to.x))
 			{
 				king = false;
 			}
-			if ((from.x + 2 == to.x || from.x - 2 == to.x) && state.gmap[from] == King)
+			if ((from.x + 2 == to.x || from.x - 2 == to.x) && state.gmap(from) == King)
 			{
 				king = false;
 				figures.find(from.x * 50, from.y * 50).back().setPos(to.x * 50, to.y * 50);
@@ -1356,24 +1391,24 @@ class MyApp : public App
 				{
 					figures.find((from.x + 4) * 50, from.y * 50).back().setPos((from.x + 1) * 50, from.y * 50);
 					rook[1] = false;
-					state.gmap[from.x + 1][from.y] = Rook;
-					state.omap[from.x + 1][from.y] = state.HamI;
-					state.gmap[from.x + 4][from.y] = None;
-					state.omap[from.x + 4][from.y] = Neutral;
+					state.gmap(from.x + 1, from.y) = Rook;
+					state.omap(from.x + 1, from.y) = state.HamI;
+					state.gmap(from.x + 4, from.y) = None;
+					state.omap(from.x + 4, from.y) = Neutral;
 				}
 				else
 				{
 					figures.find((from.x - 3) * 50, from.y * 50).back().setPos((from.x - 1) * 50, from.y * 50);
 					rook[0] = false;
-					state.gmap[from.x - 1][from.y] = Rook;
-					state.omap[from.x - 1][from.y] = state.HamI;
-					state.gmap[from.x - 3][from.y] = None;
-					state.omap[from.x - 3][from.y] = Neutral;
+					state.gmap(from.x - 1, from.y) = Rook;
+					state.omap(from.x - 1, from.y) = state.HamI;
+					state.gmap(from.x - 3, from.y) = None;
+					state.omap(from.x - 3, from.y) = Neutral;
 				}
 			}
 
-			state.gmap[from] = None;
-			state.omap[from] = Neutral;
+			state.gmap(from) = None;
+			state.omap(from) = Neutral;
 
 
 			state.changeP();
@@ -1444,7 +1479,7 @@ class MyApp : public App
 			lights.clear();
 			if (cell(p).x * 50 < 400 && cell(p).x * 50 >= 0 && cell(p).y * 50 < 400 && cell(p).y * 50 >= 0)
 			{
-				if (state.omap[g1] == state.HamI)
+				if (state.omap(g1) == state.HamI)
 					lights.load("Light.json", cell(p).x * 50, cell(p).y * 50);
 				movePawn(state, g1, AllAllowed, tPos);
 
@@ -1525,7 +1560,7 @@ class MyApp : public App
 int main(int argc, char** argv)
 {
 	MyApp app;
-	app.setConfig("MyProj-masterConfig.json");
+	app.setConfig("MyProjConfig.json");
 	app.setDesign("Design.json");
 	if (!app.init(&argc, argv))
 		return 1;

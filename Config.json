@@ -1,9 +1,6 @@
 {
     "designPath": "design",
-    "fontsPath": [
-        "../gamebase/resources/fonts",
-        "fonts"
-    ],
+    "fontsPath": "../gamebase/resources/fonts",
     "height": 768,
     "imagesPath": "images",
     "mode": "window",
