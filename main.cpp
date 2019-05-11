@@ -158,7 +158,10 @@ public:
 		}
 	}
 
-	IntVec2 findKing(int owner)
+	IntVec2 kingW;
+	IntVec2 kingB;
+
+	/*IntVec2 findKing(int owner)
 	{
 		IntVec2 king;
 		for (int x = 0; x < 8; ++x)
@@ -172,7 +175,7 @@ public:
 			}
 		}
 		return king;
-	}
+	}*/
 
 	int HamI = White;
 
@@ -186,6 +189,11 @@ enum MoveClass
 	AllAllowed,
 	Hits
 };
+
+bool OneLine(IntVec2 g1, IntVec2 g2)
+{
+	return g1.x == g2.x || g1.y == g2.y || (g1.x + g1.y == g2.x + g2.y) || (g1.y - g1.x == g2.y - g2.x);
+}
 
 bool isAttacking(State& state, IntVec2 p);
 void MoveTo(State& state, Move m)
@@ -209,6 +217,7 @@ void MoveTo(State& state, Move m)
 	enemywalk.clear();
 	auto& king = state.HamI == White ? state.flags.kingW : state.flags.kingB;
 	auto& rook = state.HamI == White ? state.flags.rookW : state.flags.rookB;
+	auto& KingPos = state.HamI == White ? state.kingW : state.kingB;
 	if (state.gmap(m.From) == Rook)
 	{
 		if (m.To.x > 4)
@@ -245,6 +254,11 @@ void MoveTo(State& state, Move m)
 		}
 	}
 
+	if (state.gmap(m.From) == King)
+	{
+		KingPos = m.To;
+	}
+
 	if (m.type == Promotion)
 	{
 		state.gmap(m.To) = Queen;
@@ -263,6 +277,7 @@ void MoveBack(State& state, Move m, int prevFigure, int prevOwner)
 	auto isWhite = state.HamI == White;
 	auto enemy = isWhite == White ? Black : White;
 	auto& enemywalk = isWhite ? state.flags.walkTB : state.flags.walkTW;
+	auto& KingPos = state.HamI == White ? state.kingW : state.kingB;
 	int dir = isWhite ? 1 : -1;
 	if (m.type == EnPassant)
 	{
@@ -288,6 +303,11 @@ void MoveBack(State& state, Move m, int prevFigure, int prevOwner)
 		}
 	}
 
+	if (state.gmap(m.To.x, m.To.y) == King)
+	{
+		KingPos = m.From;
+	}
+
 	if (m.type == Promotion)
 	{
 		state.gmap(m.From) = Pawn;
@@ -301,7 +321,7 @@ void MoveBack(State& state, Move m, int prevFigure, int prevOwner)
 	state.omap(m.To) = prevOwner;
 }
 
-
+bool Ischeck(State& state);
 void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 {
 	v.clear();
@@ -391,54 +411,19 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 
 		if (state.gmap(p) == King)
 		{
-			int yN1 = p.y + 1, yN2 = p.y - 1;
-			int xN1 = p.x + 1, xN2 = p.x - 1;
-
-			if (yN1 < 8)
-			{
-				if (state.omap(p.x, yN1) == Neutral)
-					v.emplace_back(p,p.x, yN1, Regular);
-
-				if (xN1 < 8 && state.omap(xN1, yN1) == Neutral)
-					v.emplace_back(p,xN1, yN1, Regular);
-
-				if (xN2 >= 0 && state.omap(xN2, yN1) == Neutral)
-					v.emplace_back(p,xN2, yN1, Regular);
-			}
-
-			if (yN2 >= 0)
-			{
-				if (state.omap(p.x, yN2) == Neutral)
-					v.emplace_back(p,p.x, yN2, Regular);
-
-				if (xN1 < 8 && state.omap(xN1, yN2) == Neutral)
-					v.emplace_back(p,xN1, yN2, Regular);
-
-				if (xN2 >= 0 && state.omap(xN2, yN2) == Neutral)
-					v.emplace_back(p,xN2, yN2, Regular);
-			}
-
-			if (xN1 < 8 && state.omap(p.x + 1, p.y) == Neutral)
-				v.emplace_back(p,p.x + 1, p.y, Regular);
-
-			if (xN2 >= 0 && state.omap(p.x - 1, p.y) == Neutral)
-				v.emplace_back(p,p.x - 1, p.y, Regular);
-
 			auto& king = state.HamI == White ? state.flags.kingW : state.flags.kingB;
 			auto& rook = state.HamI == White ? state.flags.rookW : state.flags.rookB;
 			if (king)
 			{
 
-				if (p.x - 3 > 0 && state.gmap(p.x - 1, p.y) == None && state.gmap(p.x - 2, p.y) == None
-					&& state.gmap(p.x - 3, p.y) == Rook && rook[0] == true)
+				if (rook[0] && state.gmap(p.x - 1, p.y) == None && state.gmap(p.x - 2, p.y) == None)
 				{
 					v.emplace_back(p,p.x - 2, p.y, Castling);
 				}
 
 
-				if (p.x + 4 < 8 && state.gmap(p.x + 1, p.y) == None && state.gmap(p.x + 2, p.y) == None
-					&& state.gmap(p.x + 3, p.y) == None && state.gmap(p.x + 4, p.y) == Rook
-					&& rook[1] == true)
+				if (rook[1] && state.gmap(p.x + 1, p.y) == None && state.gmap(p.x + 2, p.y) == None
+					&& state.gmap(p.x + 3, p.y) == None)
 				{
 					v.emplace_back(p,p.x + 2, p.y, Castling);
 				}
@@ -574,35 +559,35 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 		}
 		if (state.gmap(p) == King)
 		{
-			if (p.x + 1 <= 7 && state.isNE(p.x + 1, p.y))
+			if (state.isNE(p.x + 1, p.y))
 			{
 				v.emplace_back(p,p.x + 1, p.y, Regular);
 			}
-			if (p.x - 1 >= 0 && state.isNE(p.x - 1, p.y))
+			if (state.isNE(p.x - 1, p.y))
 			{
 				v.emplace_back(p,p.x - 1, p.y, Regular);
 			}
-			if (p.y + 1 <= 7 && state.isNE(p.x, p.y + 1))
+			if (state.isNE(p.x, p.y + 1))
 			{
 				v.emplace_back(p,p.x, p.y + 1, Regular);
 			}
-			if (p.y - 1 >= 0 && state.isNE(p.x, p.y - 1))
+			if (state.isNE(p.x, p.y - 1))
 			{
 				v.emplace_back(p,p.x, p.y - 1, Regular);
 			}
-			if (p.x + 1 <= 7 && p.y + 1 <= 7 && state.isNE(p.x + 1, p.y + 1))
+			if (state.isNE(p.x + 1, p.y + 1))
 			{
 				v.emplace_back(p,p.x + 1, p.y + 1, Regular);
 			}
-			if (p.x + 1 <= 7 && p.y - 1 >= 0 && state.isNE(p.x + 1, p.y - 1))
+			if (state.isNE(p.x + 1, p.y - 1))
 			{
 				v.emplace_back(p,p.x + 1, p.y - 1, Regular);
 			}
-			if (p.x - 1 >= 0 && p.y + 1 <= 7 && state.isNE(p.x - 1, p.y + 1))
+			if (state.isNE(p.x - 1, p.y + 1))
 			{
 				v.emplace_back(p,p.x - 1, p.y + 1, Regular);
 			}
-			if (p.x - 1 >= 0 && p.x - 1 >= 0 && state.isNE(p.x - 1, p.y - 1))
+			if (state.isNE(p.x - 1, p.y - 1))
 			{
 				v.emplace_back(p,p.x - 1, p.y - 1, Regular);
 			}
@@ -611,26 +596,34 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 
 	if (mclass == AllAllowed)
 	{
-		IntVec2 king = state.findKing(state.HamI);
+		IntVec2 king = state.HamI == White ? state.kingW : state.kingB;
 		auto flags = state.flags;
-
+		bool oneLine = OneLine(king, p);
+		bool ischeck = Ischeck(state);
 		auto it = remove_if(
 			v.begin(),
 			v.end(),
 			[&](Move p2)
 			{
-				auto Ifking = p == king ? p2.To : king;
+				if (oneLine || OneLine(king, p2.To))
+				{ 
+					auto Ifking = p == king ? p2.To : king;
 
-				auto prevFigure = state.gmap(p2.To);
-				auto prevOwner = state.omap(p2.To);
-				MoveTo(state, p2);
-				state.changeP();
+					auto prevFigure = state.gmap(p2.To);
+					auto prevOwner = state.omap(p2.To);
+					MoveTo(state, p2);
+					state.changeP();
 
-				bool Attacking = isAttacking(state, Ifking);
-				state.changeP();
-				state.flags = flags;
-				MoveBack(state, p2, prevFigure, prevOwner);
-				return Attacking;
+					bool Attacking = isAttacking(state, Ifking);
+					state.changeP();
+					state.flags = flags;
+					MoveBack(state, p2, prevFigure, prevOwner);
+					return Attacking;
+				}
+				else
+				{
+					return ischeck;
+				}
 			});
 		v.erase(it, v.end());
 	}
@@ -659,12 +652,14 @@ bool isAttacking(State& state, IntVec2 p)
 		if(state.isIn(p.x + i, p.y))
 		{
 			auto f = state.gmap(p.x + i, p.y);
-			if (f != Rook && f != Queen && state.omap(p.x+i, p.y) != Neutral)
+			if (state.omap(p.x+i, p.y) != Neutral)
 			{
-				break;
+				if ((f == Rook || f == Queen) && state.isMe(p.x + i, p.y))
+					return true;
+				else
+					break;
 			}
-			if ((f == Rook || f == Queen) && state.isMe(p.x + i, p.y))
-				return true;
+			
 		}
 		else {
 			break;
@@ -676,12 +671,14 @@ bool isAttacking(State& state, IntVec2 p)
 		if (state.isIn(p.x - i, p.y))
 		{
 			auto f = state.gmap(p.x - i, p.y);
-			if (f != Rook && f != Queen && state.omap(p.x - i, p.y) != Neutral)
+			if (state.omap(p.x - i, p.y) != Neutral)
 			{
-				break;
+				if ((f == Rook || f == Queen) && state.isMe(p.x - i, p.y))
+					return true;
+				else
+					break;
 			}
-			if ((f == Rook || f == Queen) && state.isMe(p.x - i, p.y))
-				return true;
+			
 		}
 		else {
 			break;
@@ -693,12 +690,14 @@ bool isAttacking(State& state, IntVec2 p)
 		if (state.isIn(p.x, p.y + i))
 		{
 			auto f = state.gmap(p.x, p.y + i);
-			if (f != Rook && f != Queen && state.omap(p.x, p.y + i) != Neutral)
+			if (state.omap(p.x, p.y + i) != Neutral)
 			{
-				break;
+				if ((f == Rook  || f == Queen) && state.isMe(p.x, p.y + i))
+					return true;
+				else
+					break;
 			}
-			if ((f == Rook  || f == Queen) && state.isMe(p.x, p.y + i))
-				return true;
+			
 		}
 		else {
 			break;
@@ -710,12 +709,14 @@ bool isAttacking(State& state, IntVec2 p)
 		if (state.isIn(p.x, p.y - i))
 		{
 			auto f = state.gmap(p.x, p.y - i);
-			if (f != Rook && f != Queen && state.omap(p.x, p.y - i) != Neutral)
-			{
-				break;
+			if (state.omap(p.x, p.y - i) != Neutral)
+			{	
+				if ((f == Rook || f == Queen)  && state.isMe(p.x, p.y - i))
+					return true;
+				else
+					break;
 			}
-			if ((f == Rook || f == Queen)  && state.isMe(p.x, p.y - i))
-				return true;
+			
 		}
 		else {
 			break;
@@ -728,12 +729,13 @@ bool isAttacking(State& state, IntVec2 p)
 		if (state.isIn(p.x + i, p.y + i))
 		{
 			auto f = state.gmap(p.x + i, p.y + i);
-			if (f != Bishop && f != Queen && state.omap(p.x + i, p.y + i) != Neutral)
+			if (state.omap(p.x + i, p.y + i) != Neutral)
 			{
-				break;
+				if ((f == Bishop || f == Queen) && state.isMe(p.x + i, p.y + i))
+					return true;
+				else
+					break;
 			}
-			if ((f == Bishop  || f == Queen) && state.isMe(p.x + i, p.y + i))
-				return true;
 		}
 		else {
 			break;
@@ -745,12 +747,14 @@ bool isAttacking(State& state, IntVec2 p)
 		if (state.isIn(p.x - i, p.y - i))
 		{
 			auto f = state.gmap(p.x - i, p.y - i);
-			if (f != Bishop && f != Queen && state.omap(p.x - i, p.y - i) != Neutral)
+			if (state.omap(p.x - i, p.y - i) != Neutral)
 			{
-				break;
+				if ((f == Bishop  || f == Queen ) && state.isMe(p.x - i, p.y - i))
+					return true;
+				else
+					break;
 			}
-			if ((f == Bishop  || f == Queen ) && state.isMe(p.x - i, p.y - i))
-				return true;
+			
 		}
 		else {
 			break;
@@ -762,12 +766,14 @@ bool isAttacking(State& state, IntVec2 p)
 		if (state.isIn(p.x - i, p.y + i))
 		{
 			auto f = state.gmap(p.x - i, p.y + i);
-			if (f != Bishop && f != Queen && state.omap(p.x - i, p.y + i) != Neutral)
+			if (state.omap(p.x - i, p.y + i) != Neutral)
 			{
-				break;
+				if ((f == Bishop || f == Queen) && state.isMe(p.x - i, p.y + i))
+					return true;
+				else
+					break;
 			}
-			if ((f == Bishop || f == Queen) && state.isMe(p.x - i, p.y + i))
-				return true;
+			
 		}
 		else {
 			break;
@@ -779,12 +785,14 @@ bool isAttacking(State& state, IntVec2 p)
 		if (state.isIn(p.x + i, p.y - i))
 		{
 			auto f = state.gmap(p.x + i, p.y - i);
-			if (f != Bishop && f != Queen && state.omap(p.x + i, p.y - i) != Neutral)
+			if (state.omap(p.x + i, p.y - i) != Neutral)
 			{
-				break;
+				if ((f == Bishop || f == Queen ) && state.isMe(p.x + i, p.y - i))
+					return true;
+				else
+					break;
 			}
-			if ((f == Bishop || f == Queen ) && state.isMe(p.x + i, p.y - i))
-				return true;
+			
 		}
 		else {
 			break;
@@ -807,7 +815,7 @@ bool isAttacking(State& state, IntVec2 p)
 
 bool Ischeck(State& state)
 {
-	IntVec2 king = state.findKing(state.HamI);
+	IntVec2 king = state.HamI == White ? state.kingW : state.kingB;
 	state.changeP();
 	auto result = isAttacking(state, king);
 	state.changeP();
@@ -972,6 +980,10 @@ class MyApp : public App
 		Field.show();
 		state.HamI = White;
 		figures.clear();
+		state.kingW.x = 3;;
+		state.kingW.y = 0;
+		state.kingB.x = 3;;
+		state.kingB.y = 7;
 		map<Color, int> colorToType = {
 		{ Color(255, 255, 255), None },
 		{ Color(255, 0, 0), Pawn },
@@ -1368,6 +1380,7 @@ class MyApp : public App
 			state.omap(to) = state.HamI;
 			auto& king = state.HamI == White ? state.flags.kingW : state.flags.kingB;
 			auto& rook = state.HamI == White ? state.flags.rookW : state.flags.rookB;
+			auto& KingPos = state.HamI == White ? state.kingW : state.kingB;
 			if (state.gmap(from) == Rook)
 			{
 				if (to.x > 4)
@@ -1405,6 +1418,11 @@ class MyApp : public App
 					state.gmap(from.x - 3, from.y) = None;
 					state.omap(from.x - 3, from.y) = Neutral;
 				}
+			}
+
+			if (state.gmap(from.x, from.y) == King)
+			{
+				KingPos = to;
 			}
 
 			state.gmap(from) = None;
@@ -1505,16 +1523,15 @@ class MyApp : public App
 				if (g2 == v.To)       
 				{
 					makemove(g1, g2);
-					/*if(!IsSecondPlayer)
+					if(!IsSecondPlayer)
 					{ 
 						compmove();
 					}
-					break;*/
+					break;
 				}
 			}
 		}
-		compmove();
-		//	if (Isstalemate) 
+		//compmove();
 	}
 
 	void move()
