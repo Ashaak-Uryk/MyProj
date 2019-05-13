@@ -1260,6 +1260,7 @@ class MyApp : public App
 			}
 		}
 
+		auto time = chrono::system_clock::now();        
 		vector<thread> Core;
 		for (int i = 0; i < thread::hardware_concurrency(); i++)
 		{
@@ -1269,6 +1270,8 @@ class MyApp : public App
 		{
 			i.join();
 		}
+		chrono::duration<float> d = chrono::system_clock::now() - time;
+		cout << "Time: " << d.count() << endl;
 		state = std::move(copy);
 		return Moveafter;
 	}
@@ -1359,7 +1362,7 @@ class MyApp : public App
 				connect(ButQueen, Butqueen, to);
 				connect(ButPawn, Butpawn, to);
 
-				if (state.HamI == Black && !IsSecondPlayer)
+				//if (state.HamI == Black && !IsSecondPlayer)
 					isCompUpgradePawn = true;
 			}
 
@@ -1481,6 +1484,11 @@ class MyApp : public App
 				state.changeP();
 				Butqueen(to);
 				state.changeP();
+				ButRook.hide();
+				ButBishop.hide();
+				ButKnight.hide();
+				ButQueen.hide();
+				ButPawn.hide();
 			}
 		}
 	}
@@ -1523,15 +1531,15 @@ class MyApp : public App
 				if (g2 == v.To)       
 				{
 					makemove(g1, g2);
-					if(!IsSecondPlayer)
+					/*if(!IsSecondPlayer)
 					{ 
 						compmove();
-					}
+					}*/
 					break;
 				}
 			}
 		}
-		//compmove();
+		compmove();
 	}
 
 	void move()
