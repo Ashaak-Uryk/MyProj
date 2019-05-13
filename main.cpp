@@ -8,6 +8,8 @@
 using namespace gamebase;
 using namespace std;
 
+const int DEPTH = 6;
+
 enum Type
 {
 	None,
@@ -161,7 +163,7 @@ public:
 	IntVec2 kingW;
 	IntVec2 kingB;
 
-	/*IntVec2 findKing(int owner)
+	IntVec2 findKing(int owner)
 	{
 		IntVec2 king;
 		for (int x = 0; x < 8; ++x)
@@ -175,7 +177,7 @@ public:
 			}
 		}
 		return king;
-	}*/
+	}
 
 	int HamI = White;
 
@@ -272,11 +274,60 @@ void MoveTo(State& state, Move m)
 	state.omap(m.From) = Neutral;
 }
 
+void MoveToFast(State& state, Move m)
+{
+	auto isWhite = state.HamI == White;
+	int dir = isWhite ? 1 : -1;
+	if (state.gmap(m.From) == Pawn)
+	{
+		if (m.type == EnPassant)
+		{
+			state.gmap(m.To.x, m.To.y - dir) = None;
+			state.omap(m.To.x, m.To.y - dir) = Neutral;
+		}
+	}
+
+	auto& KingPos = state.HamI == White ? state.kingW : state.kingB;
+	if (m.type == Castling)
+	{
+		if (m.To.x > 4)
+		{
+			state.gmap(m.From.x + 1, m.From.y) = Rook;
+			state.omap(m.From.x + 1, m.From.y) = state.HamI;
+			state.gmap(m.From.x + 4, m.From.y) = None;
+			state.omap(m.From.x + 4, m.From.y) = Neutral;
+		}
+		else
+		{
+			state.gmap(m.From.x - 1, m.From.y) = Rook;
+			state.omap(m.From.x - 1, m.From.y) = state.HamI;
+			state.gmap(m.From.x - 3, m.From.y) = None;
+			state.omap(m.From.x - 3, m.From.y) = Neutral;
+		}
+	}
+
+	if (state.gmap(m.From) == King)
+	{
+		KingPos = m.To;
+	}
+
+	if (m.type == Promotion)
+	{
+		state.gmap(m.To) = Queen;
+	}
+	else
+	{
+		state.gmap(m.To) = state.gmap(m.From);
+	}
+	state.omap(m.To) = state.omap(m.From);
+	state.gmap(m.From) = None;
+	state.omap(m.From) = Neutral;
+}
+
 void MoveBack(State& state, Move m, int prevFigure, int prevOwner)
 {
 	auto isWhite = state.HamI == White;
 	auto enemy = isWhite == White ? Black : White;
-	auto& enemywalk = isWhite ? state.flags.walkTB : state.flags.walkTW;
 	auto& KingPos = state.HamI == White ? state.kingW : state.kingB;
 	int dir = isWhite ? 1 : -1;
 	if (m.type == EnPassant)
@@ -597,33 +648,31 @@ void movePawn(State& state, IntVec2 p, MoveClass mclass, vector<Move>& v)
 	if (mclass == AllAllowed)
 	{
 		IntVec2 king = state.HamI == White ? state.kingW : state.kingB;
-		auto flags = state.flags;
-		bool oneLine = OneLine(king, p);
-		bool ischeck = Ischeck(state);
+		//bool oneLine = OneLine(king, p);
+		//bool ischeck = Ischeck(state);
 		auto it = remove_if(
 			v.begin(),
 			v.end(),
 			[&](Move p2)
 			{
-				if (oneLine || OneLine(king, p2.To))
-				{ 
+				//if (oneLine || OneLine(king, p2.To))
+				//{ 
 					auto Ifking = p == king ? p2.To : king;
 
 					auto prevFigure = state.gmap(p2.To);
 					auto prevOwner = state.omap(p2.To);
-					MoveTo(state, p2);
+					MoveToFast(state, p2);
 					state.changeP();
 
 					bool Attacking = isAttacking(state, Ifking);
 					state.changeP();
-					state.flags = flags;
 					MoveBack(state, p2, prevFigure, prevOwner);
 					return Attacking;
-				}
-				else
-				{
-					return ischeck;
-				}
+				//}
+				//else
+				//{
+				//	return ischeck;
+				//}
 			});
 		v.erase(it, v.end());
 	}
@@ -895,11 +944,11 @@ float analyzeOneStep(Move m, State& state)
 	return step + randomFloat(-0.001, 0.001);
 }
 
-float analyzeMT(Move m, int depth, State& state)
+float analyzeMT(Move m, int depth, State& state, vector<vector<Move>>& all)
 {
 	float MyStep = analyzeOneStep(m, state);
-	vector<Move> c;
-	c.reserve(100);
+	vector<Move>& c = all[depth];
+	c.clear();
 	if (depth > 1)
 	{
 		float max = -10000000;
@@ -918,7 +967,7 @@ float analyzeMT(Move m, int depth, State& state)
 					for (auto n : c)
 					{
 
-						n.q = analyzeMT(n, depth - 1, state);
+						n.q = analyzeMT(n, depth - 1, state, all);
 						if (n.q > max)
 							max = n.q;
 					}
@@ -935,7 +984,8 @@ float analyzeMT(Move m, int depth, State& state)
 
 float analyzeMT(Move m, State& state)
 {
-	return analyzeMT(m, 6, state);
+	vector<vector<Move>> all(DEPTH+1);
+	return analyzeMT(m, DEPTH, state, all);
 }
 
 void AnalyzeAll(State state)
@@ -1157,6 +1207,8 @@ class MyApp : public App
 		Save >> state.flags.kingW >> state.flags.kingB
 			>> state.flags.rookW[0] >> state.flags.rookW[1]
 			>> state.flags.rookB[0] >> state.flags.rookB[1];
+		state.kingB = state.findKing(Black);
+		state.kingW = state.findKing(White);
 		figures.clear();
 		DrawFigures(state);
 		figures.update();
