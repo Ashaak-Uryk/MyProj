@@ -1169,12 +1169,25 @@ class MyApp : public App
 		Save << state.flags.kingW << " " << state.flags.kingB
 			<< " " << state.flags.rookW[0] << " " << state.flags.rookW[1]
 			<< " " << state.flags.rookB[0] << " " << state.flags.rookB[1];
-		Save.close();
+
+		ofstream SaveAnno("SaveAnno.txt");
+		for (int i = 0; i < columnB.size() + columnW.size(); i++)
+		{
+			if (i % 2 == 0)
+			{
+				SaveAnno << columnW.get<Label>(i / 2).text() << endl;
+			}
+			else
+			{
+				SaveAnno << columnB.get<Label>(i / 2).text() << endl;
+			}
+		}
 	}
 
 	void LoadGame()
 	{
 		ifstream Save("SaveGame.txt");
+		ifstream SaveAnno("SaveAnno.txt");
 		if (!Save.is_open())
 		{
 			return;
@@ -1185,7 +1198,7 @@ class MyApp : public App
 			{
 				Save >> state.gmap(x, y) >> state.omap(x, y);
 			}
-		}
+		}  
 		Save >> state.HamI;
 		int size = 0;
 		Save >> size;
@@ -1211,6 +1224,25 @@ class MyApp : public App
 		state.kingW = state.findKing(White);
 		figures.clear();
 		DrawFigures(state);
+		string str; 
+		int j = 0;
+		columnW.clear();
+		columnB.clear();
+		while (getline(SaveAnno, str))
+		{
+			
+			if (j % 2 == 0)
+			{
+				auto labelW = columnW.load<Label>("Label.json");
+				labelW << str;
+			}
+			else
+			{
+				auto labelB = columnB.load<Label>("Label.json");
+				labelB << str;
+			}
+			j++;
+		}
 		figures.update();
 		design.update();
 	}
@@ -1351,7 +1383,6 @@ class MyApp : public App
 	void text(State& state, IntVec2 from, IntVec2 to)
 	{
 		char h = state.gmap(to) == None ? h = '-' : h = ':';
-
 		auto k = state.gmap(from);
 		vector<string> fs = { "", "", "B", "R", "N", "K", "Q" };
 		if (state.HamI == White)
@@ -1586,8 +1617,8 @@ class MyApp : public App
 					/*if(!IsSecondPlayer)
 					{ 
 						compmove();
-					}*/
-					break;
+					}
+					break;*/
 				}
 			}
 		}
