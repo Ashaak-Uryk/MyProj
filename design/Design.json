@@ -1032,6 +1032,49 @@
                   "vertAlign" : 0
                },
                "text" : "Player vs Computer"
+            },
+            {
+               "_name" : "Forfile",
+               "_typeName" : "TextBox",
+               "filter" : {
+                  "_empty" : true
+               },
+               "position" : {
+                  "_typeName" : "AligningOffset",
+                  "horAlign" : 2,
+                  "horOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -10
+                  },
+                  "vertAlign" : 0,
+                  "vertOffset" : {
+                     "_typeName" : "RelativeValue",
+                     "type" : 1,
+                     "value" : -75
+                  }
+               },
+               "skin" : {
+                  "_typeName" : "SimpleRectangleTextBoxSkin",
+                  "borderColor" : [ 1, 1, 1, 1 ],
+                  "borderWidth" : 1,
+                  "box" : {
+                     "_typeName" : "PixelBox",
+                     "height" : 50,
+                     "width" : 220
+                  },
+                  "fillColor" : [ 0, 0, 0, 1 ],
+                  "font" : {
+                     "_typeName" : "FontDesc",
+                     "bold" : true,
+                     "family" : "Arial",
+                     "size" : 30
+                  },
+                  "selectionColor" : [ 0.7843137383460999, 0.7843137383460999, 0.7843137383460999, 1 ],
+                  "textColor" : [ 1, 1, 1, 1 ],
+                  "textOutlineColor" : [ 1, 1, 1, 1 ]
+               },
+               "text" : ""
             }
          ],
          "position" : {

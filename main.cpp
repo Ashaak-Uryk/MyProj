@@ -8,7 +8,7 @@
 using namespace gamebase;
 using namespace std;
 
-const int DEPTH = 6;
+const int DEPTH = 4;
 
 enum Type
 {
@@ -1144,10 +1144,30 @@ class MyApp : public App
 			}
 		}
 	}
-
+	
 	void SavingGame()
 	{
 		ofstream Save("SaveGame.txt");
+		
+		/*int n;
+		ofstream Save;
+		Forfile >> Save;					//  Не так!!!! (?)
+		int h = Save.size();
+		for(int i = 1; i <= h; i++)
+		{
+			if (Save[i] == '/' || Save[i] == '\' || Save[i] == ':' || Save[i] == '*' || 
+				Save[i] == '?' || Save[i] == '"' || Save[i] =='<' || Save[i] == '>' || Save[i] == '|')
+					{
+					n++;
+					Forfile << "Error! Try again!";
+					}
+			else 
+					{
+					n=0;
+
+					}
+		}*/
+		
 		for (int x = 0; x <= 7; x++)
 		{
 			for (int y = 0; y <= 7; y++)
@@ -1654,6 +1674,7 @@ class MyApp : public App
 	FromDesign(Layout, columnW);
 	FromDesign(Layout, columnB);
 	FromDesign(Texture, Field);
+	FromDesign(TextBox, Forfile);
 	IntVec2 g1;
 	IntVec2 g2;
 	IntVec2 vp;
